@@ -1,0 +1,16 @@
+# -----------------------------------------------------------------
+# Bootstrap – local-only Terraform state (do NOT commit)
+# -----------------------------------------------------------------
+infra/bootstrap/
+infra/bootstrap/**/terraform.tfstate
+infra/bootstrap/**/terraform.tfstate.backup
+infra/bootstrap/**/.terraform/
+infra/bootstrap/**/*.tfplan
+
+# -----------------------------------------------------------------
+# Main Terraform state (remote backend) – keep it local‑only
+# -----------------------------------------------------------------
+infra/terraform/terraform.tfstate
+infra/terraform/terraform.tfstate.backup
+infra/terraform/.terraform/
+infra/terraform/*.tfplan
