@@ -3,6 +3,7 @@ name: Terraform CI
 on:
   push:
     branches: [ main ]          # Adjust to the branch(s) you protect
+# ← comment from conflict‑test‑a
 
 permissions:
   id-token: write   # required for OIDC token generation
