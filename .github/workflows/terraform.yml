@@ -2,7 +2,15 @@ name: Terraform CI
 
 on:
   push:
-    branches: [ main ]          # Adjust to the branch(s) you protect
+    branches: [ main ]
+  pull_request:          # Adjust to the branch(s) you protect
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      apply:
+        description: "Run terraform apply after merge (true/false)"
+        required: false
+        default: "false"
 
 
 permissions:
@@ -13,7 +21,7 @@ jobs:
   terraform:
     runs-on: ubuntu-latest
     env:
-        TERRAFORM_CI_ENABLED: "true"   # placeholder
+        TF_IN_AUTOMATION: "true"
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -32,3 +40,6 @@ jobs:
         run: terraform -chdir=infra/terraform init -upgrade -reconfigure
       - name: Terraform Plan
         run: terraform -chdir=infra/terraform plan
+      - name: Terraform Apply
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.apply == 'true' }}
+        run: terraform -chdir=infra/terraform apply --auto-approve
