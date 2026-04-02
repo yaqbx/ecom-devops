@@ -1,55 +1,23 @@
 name: Terraform CI
-<<<<<<< HEAD
 on:
   push:
     branches: [ main ]          # Adjust to the branch(s) you protect
 permissions:
   id-token: write            # Needed for OIDC token creation
   contents: read
-=======
-
-on:
-  push:
-    branches: [ main ]
-
-permissions:
-  id-token: write   # required for OIDC token generation
-  contents: read
-
->>>>>>> a1e3ba5 (Workflow and terraform)
 jobs:
   terraform:
     runs-on: ubuntu-latest
     env:
-<<<<<<< HEAD
       TF_VAR_use_oidc: true   # <‑‑ enable the dynamic block for CI
     steps:
       - uses: actions/checkout@v4
-=======
-      TF_VAR_use_oidc: true   # enable OIDC assume role for CI
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v2
-        with:
-          terraform_version: "1.9.0"
-
->>>>>>> a1e3ba5 (Workflow and terraform)
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::163841615263:role/terraform-github-role
           aws-region: eu-north-1
-<<<<<<< HEAD
       - name: Terraform Init (remote backend)
         run: terraform -chdir=infra/terraform init -upgrade -reconfigure
-=======
-
-      - name: Terraform Init (remote backend)
-        run: terraform -chdir=infra/terraform init -upgrade -reconfigure
-
->>>>>>> a1e3ba5 (Workflow and terraform)
       - name: Terraform Plan
         run: terraform -chdir=infra/terraform plan
