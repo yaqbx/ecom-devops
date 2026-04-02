@@ -1,4 +1,4 @@
-name: Terraform CI # V2
+name: Terraform CI # V3 fix
 
 on:
   push:
