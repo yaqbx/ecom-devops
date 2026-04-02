@@ -3,7 +3,7 @@ name: Terraform CI
 on:
   push:
     branches: [ main ]          # Adjust to the branch(s) you protect
-# test
+
 
 permissions:
   id-token: write   # required for OIDC token generation
@@ -13,7 +13,7 @@ jobs:
   terraform:
     runs-on: ubuntu-latest
     env:
-#      TF_VAR_use_oidc: true   # enable OIDC assume role for CI
+        TERRAFORM_CI_ENABLED: "true"   # placeholder
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
