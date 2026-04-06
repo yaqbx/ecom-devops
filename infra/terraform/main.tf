@@ -1,8 +1,8 @@
-resource "aws_vpc" "main" {
-  cidr_block       = "10.0.1.0/24"
-  instance_tenancy = "default"
+# resource "aws_vpc" "main" {
+#   cidr_block       = "10.0.1.0/24"
+#   instance_tenancy = "default"
 
-  tags = {
-    Name = "main"
-  }
-}
+#   tags = {
+#     Name = "main"
+#   }
+# }
