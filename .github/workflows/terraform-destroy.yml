@@ -1,0 +1,35 @@
+name: Terraform Destroy (VPC)
+# Manual start only
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: "Type YES to confirm VPC destruction"
+        required: true
+        default: "NO"
+permissions:
+  id-token: write      # needed for OIDC role assume
+  contents: read
+jobs:
+  destroy:
+    # Run only when the user really typed YES
+    if: ${{ github.event.inputs.confirm == 'YES' }}
+    runs-on: ubuntu-latest
+    env:
+      TF_IN_AUTOMATION: "true"
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: "1.14.0"
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::163841615263:role/terraform-github-role
+          aws-region: eu-north-1
+      - name: Terraform Init (remote backend)
+        run: terraform -chdir=infra/terraform init -upgrade -reconfigure
+      - name: Terraform Destroy VPC
+        run: terraform -chdir=infra/terraform destroy -auto-approve
