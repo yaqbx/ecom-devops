@@ -130,7 +130,7 @@ resource "aws_route_table_association" "private_assoc" {
 # --------------------------------------------------------------
 resource "aws_security_group" "default" {
   name        = "ecom-devops-sg"
-  description = "Default SG – no inbound, all outbound"
+  description = "Default SG - no inbound, all outbound"
   vpc_id      = aws_vpc.main.id
   egress {
     from_port   = 0
