@@ -5,7 +5,7 @@ variable "use_oidc" {
 }
 
 provider "aws" {
-  region = "eu-north-1"
+  region = var.aws_region
 
   dynamic "assume_role_with_web_identity" {
     for_each = var.use_oidc ? [1] : []
