@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: user-management-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: user_management
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - user-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: user-management-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - user-network
+
+  user-management:
+    build: .
+    container_name: user-management-api
+    restart: unless-stopped
+    environment:
+      DEBUG: "True"
+      SECRET_KEY: "dev-secret-key-change-in-production"
+      DATABASE_URL: "postgres://postgres:postgres@db:5432/user_management"
+      REDIS_URL: "redis://redis:6379/0"
+      ALLOWED_HOSTS: "localhost,127.0.0.1,0.0.0.0"
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - redis
+    volumes:
+      - ./src:/app/src
+      - ./config:/app/config
+    networks:
+      - user-network
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py runserver 0.0.0.0:8000"
+
+volumes:
+  postgres_data:
+
+networks:
+  user-network:
+    driver: bridge

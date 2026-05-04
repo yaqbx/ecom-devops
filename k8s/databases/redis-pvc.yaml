@@ -1,0 +1,20 @@
+# ============================================
+# RESOURCE: PersistentVolumeClaim
+# NAME: redis-pvc
+# PURPOSE: Optional storage for Redis (if persistence needed)
+# NOTE: Redis can run without PVC (ephemeral cache)
+# ============================================
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: redis-pvc
+  namespace: ecommerce
+  labels:
+    app: redis
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 512Mi  # Smaller storage for cache
+  storageClassName: ""

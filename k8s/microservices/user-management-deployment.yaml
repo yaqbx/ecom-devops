@@ -1,0 +1,82 @@
+# ============================================
+# RESOURCE: Deployment
+# SERVICE: User Management (Django)
+# PURPOSE: Runs User Management API microservice
+# ============================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-management
+  namespace: ecommerce
+  labels:
+    app: user-management
+    tier: backend
+    language: python
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: user-management
+      tier: backend
+  template:
+    metadata:
+      labels:
+        app: user-management
+        tier: backend
+    spec:
+      containers:
+        - name: user-management
+          image: user-management:latest
+          ports:
+            - containerPort: 8000
+              name: http
+              protocol: TCP
+          
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "0.2"
+            limits:
+              memory: "512Mi"
+              cpu: "0.5"
+          
+          env:
+            - name: DEBUG
+              value: "False"
+            - name: DATABASE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: user-management-config
+                  key: DATABASE_URL
+            - name: REDIS_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: user-management-config
+                  key: REDIS_URL
+            - name: SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: user-management-secret
+                  key: SECRET_KEY
+                  # SECRET EXPLAINED:
+                  # - Django requires SECRET_KEY for security
+                  # - Stored in Secret (not ConfigMap)
+                  # - See user-management-secret.yaml
+          
+          livenessProbe:
+            httpGet:
+              path: /health/
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          
+          readinessProbe:
+            httpGet:
+              path: /health/
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3

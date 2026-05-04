@@ -1,0 +1,105 @@
+# ============================================
+# RESOURCE: Deployment
+# SERVICE: PostgreSQL
+# PURPOSE: Runs PostgreSQL database for User Management service
+# ============================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  namespace: ecommerce
+  labels:
+    app: postgres
+    tier: database
+    component: rdbms
+spec:
+  replicas: 1  # Single instance for stateful DB
+  selector:
+    matchLabels:
+      app: postgres
+      tier: database
+  template:
+    metadata:
+      labels:
+        app: postgres
+        tier: database
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:15-alpine
+          # POSTGRES IMAGE:
+          # - postgres:15 = PostgreSQL version 15
+          # - -alpine = Lightweight Alpine Linux base
+          # - Smaller image, faster startup
+          
+          ports:
+            - containerPort: 5432
+              name: postgres
+              protocol: TCP
+          
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "0.25"
+            limits:
+              memory: "512Mi"
+              cpu: "0.5"
+          
+          env:
+            - name: POSTGRES_DB
+              value: user_management
+              # POSTGRES_DB EXPLAINED:
+              # - Initial database name created by PostgreSQL
+              # - Default database for connections
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_PASSWORD
+                  # SECRETS EXPLAINED:
+                  # - Credentials stored in postgres-secret
+                  # - We'll create this in postgres-secret.yaml
+                  # - Never commit actual passwords to Git!
+          
+          volumeMounts:
+            - name: postgres-data
+              mountPath: /var/lib/postgresql/data
+              # MOUNTPATH EXPLAINED:
+              # - PostgreSQL default data directory
+              # - All database files stored here
+              # - Must mount persistent volume here
+          
+          livenessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - postgres
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          
+          readinessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - postgres
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+      
+      volumes:
+        - name: postgres-data
+          persistentVolumeClaim:
+            claimName: postgres-pvc
+      
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30

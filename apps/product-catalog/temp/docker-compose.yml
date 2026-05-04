@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:7
+    container_name: equipment-catalog-db
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_DATABASE: equipment_catalog
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - equipment-network
+
+  product-catalog:
+    build: .
+    container_name: equipment-catalog-api
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      MONGODB_URI: mongodb://mongodb:27017/equipment_catalog
+      ALLOWED_ORIGINS: http://localhost:3000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mongodb
+    networks:
+      - equipment-network
+    volumes:
+      - ./logs:/app/logs
+
+volumes:
+  mongodb_data:
+
+networks:
+  equipment-network:
+    driver: bridge

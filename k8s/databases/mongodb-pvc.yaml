@@ -1,0 +1,52 @@
+# ============================================
+# RESOURCE: PersistentVolumeClaim
+# NAME: mongodb-pvc
+# PURPOSE: Requests storage for MongoDB data
+# ============================================
+#
+# WHAT IS A PVC?
+# - A "request" for persistent storage
+# - Like filing a storage request with Kubernetes
+# - Kubernetes finds matching PersistentVolume (PV)
+# - Data survives pod restarts
+#
+# HOW IT CONNECTS:
+# - Referenced by mongodb-deployment.yaml
+# - Mounted at /data/db in MongoDB container
+# - Data persists even if pod is deleted
+#
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mongodb-pvc
+  namespace: ecommerce
+  labels:
+    app: mongodb
+spec:
+  accessModes:
+    - ReadWriteOnce
+    # ACCESSMODES EXPLAINED:
+    # - ReadWriteOnce (RWO): Single node can read/write
+    # - ReadOnlyMany (ROM): Multiple nodes can read
+    # - ReadWriteMany (RWX): Multiple nodes can read/write
+    # - RWO is standard for databases (single writer)
+  
+  resources:
+    requests:
+      storage: 1Gi
+      # STORAGE REQUEST EXPLAINED:
+      # - Requesting 1 GiB of storage
+      # - Kubernetes finds PV with >= this size
+      # - For production MongoDB: 10-100GB+
+      #
+      # STORAGE UNITS:
+      # - Gi = Gibibyte (binary, 1024^3 bytes)
+      # - GB = Gigabyte (decimal, 1000^3 bytes)
+      # - Kubernetes uses binary units (Gi, Mi, Ki)
+  
+  storageClassName: ""
+  # STORAGECLASSNAME EXPLAINED:
+  # - Empty string = use default storage class
+  # - Can specify: "standard", "gp3", "efs", etc.
+  # - StorageClass defines HOW storage is provisioned
+  # - Examples: EBS, EFS, local storage

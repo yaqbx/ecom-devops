@@ -1,0 +1,55 @@
+name: Build & Push App Images
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'apps/**'
+      - '.github/workflows/build.yml'
+  pull_request:
+    paths:
+      - 'apps/**'
+  workflow_dispatch:
+jobs:
+  build:
+    name: Build and Push Images
+    runs-on: ubuntu-latest
+    
+    permissions:
+      id-token: write
+      contents: read
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::163841615263:role/app-build-role
+          aws-region: eu-north-1
+      
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+      
+      - name: Extract short commit SHA
+        id: sha
+        run: echo "short_sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+      
+      - name: Build Product Catalog
+        run: |
+          docker build -t product-catalog:${{ steps.sha.outputs.short_sha }} apps/product-catalog
+          docker tag product-catalog:${{ steps.sha.outputs.short_sha }} ${{ vars.AWS_ACCOUNT_ID || '163841615263' }}.dkr.ecr.eu-north-1.amazonaws.com/product-catalog:v1.0.0-${{ steps.sha.outputs.short_sha }}
+          docker push ${{ vars.AWS_ACCOUNT_ID || '163841615263' }}.dkr.ecr.eu-north-1.amazonaws.com/product-catalog:v1.0.0-${{ steps.sha.outputs.short_sha }}
+      
+      - name: Build User Management
+        run: |
+          docker build -t user-management:${{ steps.sha.outputs.short_sha }} apps/user-management
+          docker tag user-management:${{ steps.sha.outputs.short_sha }} ${{ vars.AWS_ACCOUNT_ID || '163841615263' }}.dkr.ecr.eu-north-1.amazonaws.com/user-management:v1.0.0-${{ steps.sha.outputs.short_sha }}
+          docker push ${{ vars.AWS_ACCOUNT_ID || '163841615263' }}.dkr.ecr.eu-north-1.amazonaws.com/user-management:v1.0.0-${{ steps.sha.outputs.short_sha }}
+      
+      - name: Build Checkout Service
+        run: |
+          docker build -t checkout-service:${{ steps.sha.outputs.short_sha }} apps/checkout-service
+          docker tag checkout-service:${{ steps.sha.outputs.short_sha }} ${{ vars.AWS_ACCOUNT_ID || '163841615263' }}.dkr.ecr.eu-north-1.amazonaws.com/checkout-service:v1.0.0-${{ steps.sha.outputs.short_sha }}
+          docker push ${{ vars.AWS_ACCOUNT_ID || '163841615263' }}.dkr.ecr.eu-north-1.amazonaws.com/checkout-service:v1.0.0-${{ steps.sha.outputs.short_sha }}

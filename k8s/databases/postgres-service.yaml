@@ -1,0 +1,35 @@
+# ============================================
+# RESOURCE: Service
+# NAME: postgres
+# TYPE: ClusterIP
+# PURPOSE: Exposes PostgreSQL to User Management service
+# ============================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: ecommerce
+  labels:
+    app: postgres
+    tier: database
+spec:
+  type: ClusterIP
+  # TYPE EXPLAINED:
+  # - ClusterIP: Internal cluster access only
+  # - Gets virtual IP (10.96.x.x)
+  # - Load balances across matching pods
+  # - Default service type
+  
+  selector:
+    app: postgres
+    tier: database
+  
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: 5432
+      protocol: TCP
+      # CONNECTION STRING:
+      # - User Management connects to:
+      #   postgres://user:pass@postgres:5432/dbname
+      # - DNS 'postgres' resolves to service IP

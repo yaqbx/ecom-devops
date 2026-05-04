@@ -1,0 +1,35 @@
+# ============================================
+# RESOURCE: Service
+# NAME: product-catalog
+# TYPE: ClusterIP
+# PURPOSE: Exposes Product Catalog API internally
+# ============================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: product-catalog
+  namespace: ecommerce
+  labels:
+    app: product-catalog
+    tier: backend
+spec:
+  type: ClusterIP
+  # CLUSTERIP EXPLAINED:
+  # - Internal cluster IP (not exposed externally)
+  # - Gets virtual IP from Kubernetes
+  # - Load balances across all pods
+  # - Access via: product-catalog.ecommerce.svc.cluster.local:3000
+  
+  selector:
+    app: product-catalog
+    tier: backend
+  
+  ports:
+    - name: http
+      port: 3000
+      targetPort: 3000
+      protocol: TCP
+      # PORT EXPLAINED:
+      # - port: 3000 = Service port
+      # - targetPort: 3000 = Container port
+      # - Traffic to service:3000 -> pod:3000

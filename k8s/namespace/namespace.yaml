@@ -1,0 +1,101 @@
+# ============================================
+# RESOURCE: Namespace
+# NAME: ecommerce
+# PURPOSE: Logical isolation for e-commerce microservices
+# ============================================
+#
+# WHAT IS A NAMESPACE?
+# - A Namespace is a virtual cluster within a physical Kubernetes cluster
+# - It provides scope for resources (pods, services, deployments, etc.)
+# - Resources in different namespaces are isolated from each other
+# - Useful for:
+#   * Separating environments (dev, staging, production)
+#   * Multi-tenancy (different teams/projects)
+#   * Resource quotas and limits per namespace
+#   * Easier management and cleanup
+#
+# HOW IT CONNECTS:
+# - All resources (Deployments, Services, ConfigMaps) will reference this namespace
+# - kubectl commands can target this namespace: kubectl get pods -n ecommerce
+# - Services can communicate across namespaces using DNS: service.namespace.svc.cluster.local
+#
+# WHY USE NAMESPACES?
+# - Prevents naming conflicts (can have "api" in dev and "api" in production)
+# - Easier resource management (kubectl delete namespace ecommerce deletes everything)
+# - Can apply ResourceQuotas to limit total CPU/memory usage
+# - Can apply NetworkPolicies to control traffic flow
+#
+apiVersion: v1
+# API VERSION EXPLAINED:
+# - 'v1' is the core Kubernetes API version
+# - Namespace is a fundamental resource, so it's in the core API group
+# - Other examples: apps/v1 (Deployments), batch/v1 (Jobs)
+
+kind: Namespace
+# KIND EXPLAINED:
+# - Specifies this is a Namespace resource
+# - Other common kinds: Deployment, Service, ConfigMap, Secret, PersistentVolumeClaim
+# - Each kind has its own schema and behavior
+
+metadata:
+  # METADATA EXPLAINED:
+  # - Information ABOUT the resource (not the application data)
+  # - Every Kubernetes resource has metadata
+  # - Used by kubectl and other tools to identify and manage resources
+  
+  name: ecommerce
+  # NAME EXPLAINED:
+  # - Unique identifier for this namespace within the cluster
+  # - Must be lowercase, can contain hyphens and numbers
+  # - Used in kubectl commands: kubectl get pods -n ecommerce
+  # - Other resources reference this name in their metadata.namespace field
+  
+  labels:
+    # LABELS EXPLAINED:
+    # - Key-value pairs for organization and filtering
+    # - Can be added to any resource
+    # - Used by kubectl selectors, NetworkPolicies, ResourceQuotas
+    
+    name: ecommerce
+    # NAME LABEL:
+    # - Common convention to label namespace with its own name
+    # - Makes it easy to find: kubectl get namespaces -l name=ecommerce
+    
+    environment: development
+    # ENVIRONMENT LABEL:
+    # - Identifies the environment (development, staging, production)
+    # - Useful for cost allocation and monitoring
+    # - NetworkPolicies can use this to restrict production access
+    
+    team: platform
+    # TEAM LABEL:
+    # - Identifies the owning team
+    # - Useful for RBAC (Role-Based Access Control)
+    # - Helps identify who to contact for issues
+
+# NO SPEC FOR NAMESPACES:
+# - Namespaces don't have a spec section (unlike Deployments or Services)
+# - They're simple flat resources
+# - Configuration is done via ResourceQuotas and LimitRanges (separate resources)
+
+---
+# OPTIONAL: Additional metadata for documentation
+# This is a second document in the same file (separated by ---)
+# Could be used to add annotations or configure additional features
+
+# EXAMPLE ANNOTATIONS (commented out for reference):
+# metadata:
+#   annotations:
+#     # Annotations are key-value pairs like labels, but:
+#     # - Can store larger data (labels have size limits)
+#     # - Are NOT used for selection/filtering
+#     # - Used for tools, libraries, and metadata
+#     
+#     description: "Namespace for e-commerce microservices platform"
+#     created-by: "terraform"
+#     cost-center: "engineering-platform"
+#     
+#     # Common annotation patterns:
+#     # - Linking to documentation
+#     # - Tracking ownership
+#     # - Integration with external tools (e.g., monitoring, billing)

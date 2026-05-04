@@ -23,3 +23,11 @@ module "eks" {
   enable_control_plane_logging = var.eks_enable_logging
   tags            = var.eks_tags
 }
+
+module "ecr" {
+  source = "./modules/ecr"
+  tags = {
+    Project = "ecom-devops"
+    Environment = "dev"
+  }
+}

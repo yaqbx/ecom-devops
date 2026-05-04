@@ -1,0 +1,29 @@
+# ============================================
+# RESOURCE: ConfigMap
+# NAME: user-management-config
+# PURPOSE: Configuration for User Management service
+# ============================================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: user-management-config
+  namespace: ecommerce
+  labels:
+    app: user-management
+data:
+  DATABASE_URL: "postgres://postgres:postgres@postgres.ecommerce.svc.cluster.local:5432/user_management"
+  # DATABASE_URL EXPLAINED:
+  # - PostgreSQL connection string
+  # - Format: postgres://[user]:[pass]@[host]:[port]/[db]
+  # - User: postgres (default admin)
+  # - Host: postgres (Kubernetes service)
+  # - Port: 5432 (PostgreSQL default)
+  # - Database: user_management
+  
+  REDIS_URL: "redis://redis.ecommerce.svc.cluster.local:6379/0"
+  # REDIS_URL EXPLAINED:
+  # - Redis connection string
+  # - Format: redis://[host]:[port]/[db]
+  # - Host: redis (Kubernetes service)
+  # - Port: 6379 (Redis default)
+  # - Database: 0 (default database)
