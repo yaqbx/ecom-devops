@@ -1,0 +1,27 @@
+# ============================================
+# RESOURCE: Service
+# NAME: redis
+# TYPE: ClusterIP
+# PURPOSE: Exposes Redis cache to Checkout Service
+# ============================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  namespace: ecommerce
+  labels:
+    app: redis
+    tier: cache
+spec:
+  type: ClusterIP
+  selector:
+    app: redis
+    tier: cache
+  ports:
+    - name: redis
+      port: 6379
+      targetPort: 6379
+      protocol: TCP
+      # CONNECTION:
+      # - Checkout Service connects to: redis:6379
+      # - Redis client library handles connection

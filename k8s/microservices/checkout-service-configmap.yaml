@@ -1,0 +1,20 @@
+# ============================================
+# RESOURCE: ConfigMap
+# NAME: checkout-service-config
+# PURPOSE: Configuration for Checkout Service
+# ============================================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: checkout-service-config
+  namespace: ecommerce
+  labels:
+    app: checkout-service
+data:
+  ENV: "production"
+  REDIS_HOST: "redis"
+  REDIS_PORT: "6379"
+  # REDIS CONFIG EXPLAINED:
+  # - Host: redis (Kubernetes service name)
+  # - Port: 6379 (Redis default)
+  # - Within same namespace, can use short name

@@ -1,0 +1,32 @@
+# ============================================
+# RESOURCE: ConfigMap
+# NAME: product-catalog-config
+# PURPOSE: Configuration for Product Catalog service
+# ============================================
+#
+# WHAT IS A CONFIGMAP?
+# - Stores non-sensitive configuration data
+# - Key-value pairs injected as environment variables
+# - Separate config from code (12-factor app principle)
+# - Change config without rebuilding image
+#
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: product-catalog-config
+  namespace: ecommerce
+  labels:
+    app: product-catalog
+data:
+  MONGODB_URI: "mongodb://mongodb.ecommerce.svc.cluster.local:27017/equipment_catalog"
+  # MONGODB_URI EXPLAINED:
+  # - Connection string for MongoDB
+  # - Format: mongodb://[host]:[port]/[database]
+  # - Host: mongodb (service DNS name)
+  # - Namespace: ecommerce
+  # - Database: equipment_catalog
+  #
+  # DNS NAMING:
+  # - mongodb.ecommerce.svc.cluster.local
+  # - [service].[namespace].svc.cluster.local
+  # - Shorter form: mongodb (within same namespace)

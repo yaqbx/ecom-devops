@@ -1,0 +1,24 @@
+# ============================================
+# RESOURCE: Service
+# NAME: checkout-service
+# TYPE: ClusterIP
+# PURPOSE: Exposes Checkout Service API internally
+# ============================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: checkout-service
+  namespace: ecommerce
+  labels:
+    app: checkout-service
+    tier: backend
+spec:
+  type: ClusterIP
+  selector:
+    app: checkout-service
+    tier: backend
+  ports:
+    - name: http
+      port: 8000
+      targetPort: 8000
+      protocol: TCP

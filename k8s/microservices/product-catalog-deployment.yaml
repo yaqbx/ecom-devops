@@ -1,0 +1,82 @@
+# ============================================
+# RESOURCE: Deployment
+# SERVICE: Product Catalog (Node.js)
+# PURPOSE: Runs Product Catalog API microservice
+# ============================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: product-catalog
+  namespace: ecommerce
+  labels:
+    app: product-catalog
+    tier: backend
+    language: nodejs
+spec:
+  replicas: 2
+  # REPLICAS EXPLAINED:
+  # - 2 replicas for high availability
+  # - If one pod dies, other serves traffic
+  # - Load balanced by Kubernetes Service
+  selector:
+    matchLabels:
+      app: product-catalog
+      tier: backend
+  template:
+    metadata:
+      labels:
+        app: product-catalog
+        tier: backend
+    spec:
+      containers:
+        - name: product-catalog
+          image: product-catalog:latest
+          # IMAGE EXPLAINED:
+          # - Built from Dockerfile in apps/product-catalog/
+          # - 'latest' tag = most recent build
+          # - For production: use specific version tag
+          
+          ports:
+            - containerPort: 3000
+              name: http
+              protocol: TCP
+          
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "0.1"
+            limits:
+              memory: "256Mi"
+              cpu: "0.25"
+          
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: PORT
+              value: "3000"
+            - name: MONGODB_URI
+              valueFrom:
+                configMapKeyRef:
+                  name: product-catalog-config
+                  key: MONGODB_URI
+                  # CONFIGMAP REFERENCE:
+                  # - Pulls MongoDB connection from ConfigMap
+                  # - See product-catalog-configmap.yaml
+          
+          livenessProbe:
+            httpGet:
+              path: /health/
+              port: 3000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          
+          readinessProbe:
+            httpGet:
+              path: /health/
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3

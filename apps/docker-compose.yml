@@ -1,0 +1,140 @@
+version: '3.8'
+
+services:
+  # ==================== DATABASES & CACHE ====================
+  # MongoDB for Product Catalog
+  mongodb:
+    image: mongo:7
+    container_name: equipment-mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_DATABASE: equipment_catalog
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - equipment-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # PostgreSQL for User Management
+  postgres:
+    image: postgres:15-alpine
+    container_name: equipment-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: user_management
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - equipment-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis for Checkout Service caching
+  redis:
+    image: redis:7-alpine
+    container_name: equipment-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - equipment-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ==================== MICROSERVICES ====================
+  # Product Catalog Service (Node.js)
+  product-catalog:
+    build:
+      context: ./product-catalog
+      dockerfile: Dockerfile
+    container_name: product-catalog-api
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      MONGODB_URI: mongodb://mongodb:27017/equipment_catalog
+      ALLOWED_ORIGINS: "http://localhost:3000,http://localhost:8000"
+    ports:
+      - "3000:3000"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - equipment-network
+    volumes:
+      - ./product-catalog/logs:/app/logs
+
+  # User Management Service (Django)
+  user-management:
+    build:
+      context: ./user-management
+      dockerfile: Dockerfile
+    container_name: user-management-api
+    restart: unless-stopped
+    environment:
+      DEBUG: "True"
+      SECRET_KEY: "dev-secret-key-change-in-production"
+      DATABASE_URL: "postgres://postgres:postgres@postgres:5432/user_management"
+      REDIS_URL: "redis://redis:6379/0"
+      ALLOWED_HOSTS: "localhost,127.0.0.1,0.0.0.0"
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - equipment-network
+    command: >
+      sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+
+  # Checkout Service (FastAPI)
+  checkout-service:
+    build:
+      context: ./checkout-service
+      dockerfile: Dockerfile
+    container_name: checkout-service-api
+    restart: unless-stopped
+    environment:
+      ENV: development
+      HOST: 0.0.0.0
+      PORT: 8000
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_DB: 0
+    ports:
+      - "8001:8000"
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - equipment-network
+
+# ==================== NETWORKS & VOLUMES ====================
+networks:
+  equipment-network:
+    driver: bridge
+
+volumes:
+  mongodb_data:
+  postgres_data:
+  redis_data:

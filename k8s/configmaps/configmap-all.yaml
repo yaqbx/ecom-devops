@@ -1,0 +1,31 @@
+# ============================================
+# RESOURCE: ConfigMap Collection
+# PURPOSE: All ConfigMaps for e-commerce platform
+# ============================================
+# This file combines all ConfigMaps for easier deployment
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: product-catalog-config
+  namespace: ecommerce
+data:
+  MONGODB_URI: "mongodb://mongodb:27017/equipment_catalog"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: user-management-config
+  namespace: ecommerce
+data:
+  DATABASE_URL: "postgres://postgres:postgres@postgres:5432/user_management"
+  REDIS_URL: "redis://redis:6379/0"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: checkout-service-config
+  namespace: ecommerce
+data:
+  REDIS_HOST: "redis"
+  REDIS_PORT: "6379"

@@ -1,0 +1,56 @@
+# ============================================
+# RESOURCE: Service
+# NAME: mongodb
+# TYPE: ClusterIP (Headless)
+# PURPOSE: Exposes MongoDB deployment to other pods
+# ============================================
+#
+# WHAT IS THIS SERVICE?
+# - A headless Service (clusterIP: None) for MongoDB
+# - Provides stable DNS name for database connections
+# - "Headless" means no load balancing - returns pod IPs directly
+# - Essential for databases that need direct pod access
+#
+# HOW IT CONNECTS:
+# - Product Catalog connects to: mongodb.ecommerce.svc.cluster.local:27017
+# - Selector finds pods with app=mongodb, tier=database
+# - Returns pod IP addresses to client
+#
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongodb
+  namespace: ecommerce
+  labels:
+    app: mongodb
+    tier: database
+spec:
+  clusterIP: None  # Headless service - returns pod IPs directly
+  # HEADLESS SERVICE EXPLAINED:
+  # - clusterIP: None makes this a "headless" service
+  # - No virtual IP, no load balancing
+  # - DNS returns actual pod IPs
+  # - Required for stateful apps (databases) that need direct access
+  #
+  # ALTERNATIVE: Regular Service
+  # - clusterIP: 10.96.x.x (virtual IP)
+  # - Load balances across all pods
+  # - Good for stateless apps
+  
+  selector:
+    # SELECTOR EXPLAINED:
+    # - Finds pods with matching labels
+    # - Must match labels on MongoDB pods
+    # - Service routes traffic to these pods
+    app: mongodb
+    tier: database
+  
+  ports:
+    - name: mongodb
+      port: 27017           # Port exposed BY the service
+      targetPort: 27017     # Port on the POD (container)
+      protocol: TCP
+      # PORT MAPPING:
+      # - port: What clients use (27017)
+      # - targetPort: What container listens on (27017)
+      # - Usually same for simple cases

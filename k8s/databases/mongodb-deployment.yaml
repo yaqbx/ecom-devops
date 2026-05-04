@@ -1,0 +1,458 @@
+# ============================================
+# RESOURCE: Deployment
+# SERVICE: MongoDB
+# PURPOSE: Runs MongoDB database for Product Catalog service
+# ============================================
+#
+# WHAT IS THIS DEPLOYMENT?
+# - Creates and manages MongoDB pods for the Product Catalog service
+# - MongoDB stores product information, categories, and search indexes
+# - Uses persistent storage so data survives pod restarts
+# - Single replica (stateful databases typically don't scale horizontally in K8s)
+#
+# HOW IT CONNECTS:
+# - Product Catalog service connects to this MongoDB via Service DNS
+# - Uses PersistentVolumeClaim for data persistence
+# - Exposed via Headless Service for direct pod access
+# - Configured with resource limits to prevent resource hogging
+#
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongodb
+  # NAME EXPLAINED:
+  # - Unique identifier for this Deployment within the namespace
+  # - Used by kubectl: kubectl get deployment mongodb
+  # - Other resources reference this name (e.g., in labels or comments)
+  
+  namespace: ecommerce
+  # NAMESPACE EXPLAINED:
+  # - This Deployment belongs to the 'ecommerce' namespace
+  # - Must create the namespace first (see namespace.yaml)
+  # - All resources for this app should use the same namespace
+  
+  labels:
+    # LABELS EXPLAINED:
+    # - Key-value pairs attached to the Deployment resource itself
+    # - Used for organization, filtering, and selection
+    # - Different from template labels (which are on pods)
+    
+    app: mongodb
+    # APP LABEL:
+    # - Groups all resources belonging to MongoDB
+    # - Used by kubectl: kubectl get pods -l app=mongodb
+    # - Should match labels on related resources (Service, PVC)
+    
+    tier: database
+    # TIER LABEL:
+    # - Identifies this as a database layer resource
+    # - Used for network policies, monitoring, cost allocation
+    # - Common values: frontend, backend, database, cache
+    
+    component: db
+    # COMPONENT LABEL:
+    # - Further categorizes the type of database
+    # - Useful when you have multiple databases (postgres, redis, etc.)
+    
+spec:
+  # SPEC (SPECIFICATION) EXPLAINED:
+  # - Defines the DESIRED STATE of the Deployment
+  # - Kubernetes works continuously to match actual state to desired state
+  # - If you change spec, Kubernetes automatically updates the resource
+  
+  replicas: 1
+  # REPLICAS EXPLAINED:
+  # - Number of identical pod copies to run
+  # - For databases: typically 1 (stateful, hard to scale horizontally)
+  # - For stateless apps: 2+ for high availability
+  # - MongoDB can be clustered, but that's complex (use MongoDB Atlas for production)
+  
+  selector:
+    # SELECTOR EXPLAINED:
+    # - Defines how the Deployment finds the pods it manages
+    # - MUST match the labels on the pod template below
+    # - If they don't match, Deployment won't manage those pods
+    
+    matchLabels:
+      # MATCHLABELS EXPLAINED:
+      # - Simple label-based selector
+      # - Pod must have ALL specified labels with matching values
+      # - Alternative: matchExpressions (complex logic with operators)
+      
+      app: mongodb
+      tier: database
+      # WHY REPEAT LABELS HERE?
+      # - Deployment requires: template labels MUST include selector labels
+      # - These must EXACTLY match template.metadata.labels below
+      # - Service will also use these labels to find MongoDB pods
+  
+  template:
+    # TEMPLATE EXPLAINED:
+    # - Pod template - the blueprint for creating pods
+    # - Every time Deployment needs a new pod, it uses this template
+    # - Changes to template trigger rolling update (old pods replaced by new ones)
+    
+    metadata:
+      labels:
+        # POD LABELS EXPLAINED:
+        # - These labels are applied to EACH pod created by this Deployment
+        # - Service uses these labels to find which pods to send traffic to
+        # - Must match selector.matchLabels above (or Deployment loses control)
+        
+        app: mongodb
+        tier: database
+        component: db
+        # LABEL CONSISTENCY:
+        # - These EXACTLY match the selector above
+        # - Can add extra labels here that aren't in selector (for fine-grained control)
+        # - Example: version: "4.4" for tracking MongoDB version
+    
+    spec:
+      # POD SPEC EXPLAINED:
+      # - Defines the containers, volumes, and settings for the pod
+      # - This is the same spec you'd use for a standalone Pod resource
+      # - Deployment wraps this to provide scaling and self-healing
+      
+      containers:
+        # CONTAINERS EXPLAINED:
+        # - List of containers to run in each pod
+        # - Can have multiple containers per pod (sidecar pattern)
+        # - Most pods have 1 container (microservices pattern)
+        # - All containers in a pod share the same network IP and storage volumes
+        
+        - name: mongodb
+          # CONTAINER NAME EXPLAINED:
+          # - Unique identifier for this container within the pod
+          # - Used in kubectl logs: kubectl logs pod-name -c mongodb
+          # - Used for health check logging and debugging
+          
+          image: mongo:7
+          # IMAGE EXPLAINED:
+          # - Docker image to use for this container
+          # - Format: [registry/]repository[:tag]
+          # - 'mongo:7' means:
+          #   * No registry = uses Docker Hub (official MongoDB image)
+          #   * '7' tag = MongoDB version 7 (latest stable)
+          #
+          # FOR PRODUCTION:
+          # - Use specific version: mongo:7.0.5
+          # - Or use SHA: mongo@sha256:abc123...
+          # - This ensures reproducible deployments
+          # - Consider mongo:7-jammy for Debian-based image
+          
+          imagePullPolicy: IfNotPresent
+          # IMAGEPULLPOLICY EXPLAINED:
+          # - When to pull the image from registry
+          # - Options:
+          #   * IfNotPresent: Only pull if not already on node (default with tag)
+          #   * Always: Pull on every pod restart
+          #   * Never: Never pull (for offline/local images)
+          # - For 'latest' tag: Kubernetes changes to 'Always' automatically
+          
+          ports:
+            # PORTS EXPLAINED:
+            # - Documents which ports the container listens on
+            # - Does NOT expose the port externally (need Service for that)
+            # - Helps with documentation and some network policies
+            
+            - containerPort: 27017
+              # CONTAINERPORT EXPLAINED:
+              # - MongoDB default port: 27017
+              # - Port the database listens on INSIDE the container
+              # - Other pods connect to this port via Service
+              
+              name: mongodb
+              # PORT NAME EXPLAINED:
+              # - Optional name for the port
+              # - Can reference this name in Service instead of port number
+              # - Example: targetPort: mongodb instead of targetPort: 27017
+              
+              protocol: TCP
+              # PROTOCOL EXPLAINED:
+              # - TCP: Reliable, ordered delivery (databases, HTTP)
+              # - UDP: Fast, unordered (video streaming, DNS)
+              # - MongoDB uses TCP for reliable data transfer
+          
+          resources:
+            # RESOURCES EXPLAINED:
+            # - Defines CPU and memory constraints
+            # - Critical for cluster stability and fair resource sharing
+            # - Kubernetes scheduler uses 'requests' to decide where to place pods
+            # - Kubelet uses 'limits' to enforce resource boundaries
+            
+            requests:
+              # REQUESTS EXPLAINED:
+              # - GUARANTEED resources for this container
+              # - Kubernetes reserves this amount on the node
+              # - Pod will only be scheduled on a node with enough available resources
+              
+              memory: "256Mi"
+              # MEMORY REQUEST EXPLAINED:
+              # - 256 MiB (Mebibytes) guaranteed
+              # - Kubernetes ensures node has this much free memory
+              # - 1Mi = 1024 bytes (binary), not 1000 bytes (decimal)
+              # - MongoDB minimum recommendation: 256MB for testing
+              
+              cpu: "0.25"
+              # CPU REQUEST EXPLAINED:
+              # - 0.25 CPU core (250 millicores) guaranteed
+              # - 1 CPU = 1 core (can be fractional)
+              # - Can also write as: "250m" (250 millicores)
+              # - Kubernetes ensures node has this CPU capacity
+            
+            limits:
+              # LIMITS EXPLAINED:
+              # - MAXIMUM resources container can use
+              # - Container can BURST above requests up to limits
+              # - If exceeded: CPU is throttled, Memory causes OOM kill
+              
+              memory: "512Mi"
+              # MEMORY LIMIT EXPLAINED:
+              # - Container killed if it uses more than 512Mi
+              # - This is a HARD limit - no bursting beyond this
+              # - MongoDB with 512MB is suitable for light workloads
+              # - Production MongoDB typically needs 1-2GB+
+              
+              cpu: "0.5"
+              # CPU LIMIT EXPLAINED:
+              # - Container throttled if it tries to use more than 0.5 CPU
+              # - Unlike memory, CPU throttling doesn't kill the pod
+              # - Database operations may slow down under load
+          
+          env:
+            # ENV (Environment Variables) EXPLAINED:
+            # - Injects configuration into the container
+            # - Container sees these as environment variables
+            # - Two ways to set:
+            #   1. value: "hardcoded" (OK for non-sensitive config)
+            #   2. valueFrom: reference ConfigMap or Secret (recommended)
+            
+            - name: MONGO_INITDB_ROOT_USERNAME
+              # ENVIRONMENT VARIABLE NAME:
+              # - MongoDB reads this to set the admin username
+              # - Defined in official MongoDB Docker image
+              # - Creates admin user with root privileges
+              
+              valueFrom:
+                secretKeyRef:
+                  # SECRETKEYREF EXPLAINED:
+                  # - References a key in a Secret
+                  # - Format: secretKeyRef.name = Secret name
+                  # - secretKeyRef.key = key inside Secret
+                  #
+                  # WHY USE SECRETS?
+                  # - Sensitive data (passwords, API keys) should be in Secrets
+                  # - Secrets are base64 encoded (not encrypted by default!)
+                  # - Can apply RBAC to control who can read Secrets
+                  # - Better than hardcoding in YAML or image
+                  
+                  name: mongodb-secret
+                  # SECRET NAME:
+                  # - Must match the name of an existing Secret
+                  # - Secret must be created before Deployment (or Deployment will fail)
+                  # - We'll create this in mongodb-secret.yaml
+                  
+                  key: MONGO_INITDB_ROOT_USERNAME
+                  # SECRET KEY:
+                  # - Specific key inside the Secret
+                  # - Secret can have multiple key-value pairs
+                  # - This selects which key's value to use
+            
+            - name: MONGO_INITDB_ROOT_PASSWORD
+              # MONGO INITDB ROOT PASSWORD:
+              # - MongoDB reads this to set the admin password
+              # - Required along with username for authentication
+              # - Store in Secret, not in plain text!
+              
+              valueFrom:
+                secretKeyRef:
+                  name: mongodb-secret
+                  key: MONGO_INITDB_ROOT_PASSWORD
+                  # This will reference the password stored in Secret
+                  # Example: kubectl create secret generic mongodb-secret --from-literal=MONGO_INITDB_ROOT_PASSWORD="securepassword"
+          
+          volumeMounts:
+            # VOLUMEMOUNTS EXPLAINED:
+            # - Defines where to mount volumes in the container's filesystem
+            # - Each mount point maps a volume to a path inside the container
+            # - Multiple containers in same pod can share volumes
+            
+            - name: mongodb-data
+              # NAME EXPLAINED:
+              # - References a volume defined in 'volumes' section below
+              # - Must match the volume name exactly
+              # - Can mount same volume in multiple containers
+              
+              mountPath: /data/db
+              # MOUNTPATH EXPLAINED:
+              # - Path inside the container where volume is mounted
+              # - MongoDB stores data in /data/db by default
+              # - This is where the database will write data files
+              #
+              # COMMON MOUNT PATHS:
+              # - PostgreSQL: /var/lib/postgresql/data
+              # - MySQL: /var/lib/mysql
+              # - Redis: /data (if persistence enabled)
+              
+              readOnly: false
+              # READONLY EXPLAINED:
+              # - false = container can read AND write
+              # - true = container can only read (good for config files)
+              # - Database needs write access to store data
+          
+          livenessProbe:
+            # LIVENESS PROBE EXPLAINED:
+            # - "Is the application dead or stuck?"
+            # - If probe fails: Kubernetes KILLS the pod and restarts it
+            # - Purpose: Detect and recover from deadlocks, crashes
+            # - Without this: a crashed database might keep running but serve no queries
+            
+            exec:
+              # EXEC PROBE EXPLAINED:
+              # - Runs a command inside the container
+              # - Success = command exits with code 0
+              # - Failure = command exits with non-zero code
+              #
+              # WHY EXEC FOR MONGODB?
+              # - MongoDB provides 'mongosh' CLI for health checks
+              # - More reliable than HTTP for databases
+              # - Can check actual database connectivity
+              
+              command:
+                - mongosh
+                - --eval
+                - "db.adminCommand('ping')"
+                # PING COMMAND EXPLAINED:
+                # - MongoDB's built-in ping command
+                # - Returns success if database is responsive
+                # - Similar to HTTP health check but database-native
+            
+            initialDelaySeconds: 30
+            # INITIALDELAY EXPLAINED:
+            # - Wait 30 seconds AFTER container starts before first check
+            # - Gives MongoDB time to initialize and start listening
+            # - MongoDB can take 10-20s to start on slow nodes
+            # - Too short: Pod might be killed before it's ready
+            # - Too long: Dead pods waste resources for longer
+            
+            periodSeconds: 10
+            # PERIOD EXPLAINED:
+            # - Check every 10 seconds
+            # - Shorter = faster detection of failures
+            # - Shorter = more overhead (CPU, network)
+            # - Typical for databases: 10-30 seconds
+            
+            timeoutSeconds: 5
+            # TIMEOUT EXPLAINED:
+            # - Give up if no response in 5 seconds
+            # - Should be less than periodSeconds
+            # - Database queries can be slower under load
+            # - Too short: temporary slowness causes false failures
+            
+            failureThreshold: 3
+            # FAILURE THRESHOLD EXPLAINED:
+            # - Number of consecutive failures before action
+            # - For liveness: pod is killed after 3 failures
+            # - Total time before kill: initialDelay + (failureThreshold × period)
+            # - Example: 30 + (3 × 10) = 60 seconds worst case
+          
+          readinessProbe:
+            # READINESS PROBE EXPLAINED:
+            # - "Is the database READY to accept connections?"
+            # - If probe fails: Kubernetes REMOVES pod from Service endpoints
+            # - Pod keeps running but receives ZERO traffic
+            # - Purpose: Don't send traffic to databases still starting up
+            
+            exec:
+              command:
+                - mongosh
+                - --eval
+                - "db.adminCommand('ping')"
+            
+            initialDelaySeconds: 5
+            # READINESS INITIAL DELAY:
+            # - Shorter than liveness (database can serve before fully initialized)
+            # - MongoDB can accept connections quickly after startup
+            # - Gives time for basic initialization
+            
+            periodSeconds: 5
+            # READINESS PERIOD:
+            # - Check more frequently than liveness
+            # - Want to add/remove from load balancer quickly
+            # - Databases should become ready/unready quickly
+            
+            timeoutSeconds: 3
+            failureThreshold: 3
+            # Same logic as liveness, but for readiness
+      
+      volumes:
+        # VOLUMES EXPLAINED:
+        # - Defines storage volumes available to containers in the pod
+        # - Each volume has a type (persistentVolumeClaim, emptyDir, configMap, etc.)
+        # - Referenced by name in volumeMounts section above
+        # - Volumes exist for the lifetime of the pod (except PersistentVolumes)
+        
+        - name: mongodb-data
+          # NAME EXPLAINED:
+          # - Identifier for this volume within the pod
+          # - Referenced by volumeMounts.name above
+          # - Must be unique within the pod
+          
+          persistentVolumeClaim:
+            # PERSISTENTVOLUMECLAIM EXPLAINED:
+            # - Uses a PersistentVolumeClaim for storage
+            # - PVC provides persistent storage that survives pod restarts
+            # - Data remains even if pod is deleted and recreated
+            #
+            # HOW PVC WORKS:
+            # 1. PVC is created (separate resource)
+            # 2. Kubernetes finds matching PersistentVolume (PV)
+            # 3. PV is mounted to the pod
+            # 4. When pod dies, data remains in PV
+            #
+            # WHY USE PVC FOR DATABASES?
+            # - Databases need persistent storage
+            # - Without PVC: data lost when pod restarts
+            # - With PVC: data survives pod restarts, node failures
+            
+            claimName: mongodb-pvc
+            # CLAIMNAME EXPLAINED:
+            # - Name of the PersistentVolumeClaim to use
+            # - Must create PVC before Deployment (or Deployment will fail)
+            # - We'll create this in mongodb-pvc.yaml
+            #
+            # PVC vs Direct PV:
+            # - PVC is like a "request" for storage
+            # - Kubernetes matches PVC to available PV
+            # - Abstraction layer between pod and physical storage
+      
+      restartPolicy: Always
+      # RESTARTPOLICY EXPLAINED:
+      # - What to do when container exits
+      # - Options:
+      #   * Always: Restart regardless of exit code (default for Deployments)
+      #   * OnFailure: Restart only if exit code != 0
+      #   * Never: Don't restart (for batch jobs)
+      # - For Deployments: always use 'Always'
+      # - Ensures database restarts if it crashes
+      
+      terminationGracePeriodSeconds: 30
+      # TERMINATION GRACE PERIOD EXPLAINED:
+      # - Time to wait for graceful shutdown before force-killing
+      # - When pod is deleted:
+      #   1. Pod removed from Service (stops new connections)
+      #   2. SIGTERM sent to MongoDB (graceful shutdown signal)
+      #   3. Wait up to 30 seconds for MongoDB to finish transactions
+      #   4. If still running: SIGKILL (force kill)
+      # - MongoDB handles SIGTERM gracefully (closes connections, flushes data)
+      # - Too short: data corruption risk
+      # - Too long: slow deployments
+      
+      dnsPolicy: ClusterFirst
+      # DNS POLICY EXPLAINED:
+      # - How pod resolves DNS names
+      # - Options:
+      #   * ClusterFirst: Use cluster DNS first (default for most pods)
+      #   * Default: Use node's DNS
+      #   * None: No DNS (set dnsConfig manually)
+      # - ClusterFirst allows
