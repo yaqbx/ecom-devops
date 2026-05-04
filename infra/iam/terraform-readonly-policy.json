@@ -1,25 +1,35 @@
 {
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Action": [
-        "ec2:Describe*",
-        "ec2:DescribeNetworkInterfaces",
-        "ec2:DescribeAddresses",
-        "ec2:DescribeAvailabilityZones",
-        "ec2:DescribeInternetGateways",
-        "ec2:DescribeNatGateways",
-        "ec2:DescribeRouteTables",
-        "ec2:DescribeSecurityGroups",
-        "ec2:DescribeSubnets",
-        "ec2:DescribeVpcs",
-        "s3:ListBucket",
-        "s3:GetObject",
-        "s3:HeadObject",
-        "sts:GetCallerIdentity"
-      ],
-      "Resource": "*"
-    }
-  ]
-}
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Effect": "Allow",
+        "Action": [
+          "ec2:Describe*",
+          "ec2:DescribeNetworkInterfaces",
+          "ec2:DescribeAddresses",
+          "ec2:DescribeAvailabilityZones",
+          "ec2:DescribeInternetGateways",
+          "ec2:DescribeNatGateways",
+          "ec2:DescribeRouteTables",
+          "ec2:DescribeSecurityGroups",
+          "ec2:DescribeSubnets",
+          "ec2:DescribeVpcs",
+          "s3:ListBucket",
+          "s3:GetObject",
+          "s3:HeadObject",
+          "sts:GetCallerIdentity",
+          "ecr:DescribeRepositories",
+          "ecr:DescribeImages",
+          "ecr:GetLifecyclePolicy",
+          "ecr:GetRepositoryPolicy",
+          "ecr:GetAuthorizationToken",
+          "ecr:ListImages",
+          "iam:GetRole",
+          "iam:ListRolePolicies",
+          "iam:GetRolePolicy",
+          "iam:ListAttachedRolePolicies"
+        ],
+        "Resource": "*"
+      }
+    ]
+  }
