@@ -12,6 +12,7 @@ resource "aws_ecr_repository" "product_catalog" {
   
   tags = var.tags
 }
+
 resource "aws_ecr_repository" "user_management" {
   name                 = "user-management"
   image_tag_mutability = "MUTABLE"
@@ -22,6 +23,7 @@ resource "aws_ecr_repository" "user_management" {
   
   tags = var.tags
 }
+
 resource "aws_ecr_repository" "checkout_service" {
   name                 = "checkout-service"
   image_tag_mutability = "MUTABLE"
@@ -76,6 +78,7 @@ resource "aws_ecr_lifecycle_policy" "user_management" {
 }
 EOF
 }
+
 resource "aws_ecr_lifecycle_policy" "checkout_service" {
   repository = aws_ecr_repository.checkout_service.name
   
