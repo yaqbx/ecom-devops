@@ -38,6 +38,7 @@ resource "aws_ecr_lifecycle_policy" "product_catalog" {
   
   policy = jsonencode({
     rules = [{
+      rulePriority = 1 
       description = "Expire untagged images older than 14 days"
       selection = {
         tag_status   = "untagged"
@@ -55,6 +56,7 @@ resource "aws_ecr_lifecycle_policy" "user_management" {
   
   policy = jsonencode({
     rules = [{
+      rulePriority = 1 
       description = "Expire untagged images older than 14 days"
       selection = {
         tag_status   = "untagged"
@@ -72,6 +74,7 @@ resource "aws_ecr_lifecycle_policy" "checkout_service" {
   
   policy = jsonencode({
     rules = [{
+      rulePriority = 1 
       description = "Expire untagged images older than 14 days"
       selection = {
         tag_status   = "untagged"
