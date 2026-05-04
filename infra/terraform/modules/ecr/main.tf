@@ -46,7 +46,8 @@ resource "aws_ecr_lifecycle_policy" "product_catalog" {
       "selection": {
         "tagStatus": "untagged",
         "countType": "sinceImagePushed",
-        "countNumber": 14
+        "countNumber": 14,
+        "countUnit": "days"
       },
       "action": {
         "type": "expire"
@@ -68,7 +69,8 @@ resource "aws_ecr_lifecycle_policy" "user_management" {
       "selection": {
         "tagStatus": "untagged",
         "countType": "sinceImagePushed",
-        "countNumber": 14
+        "countNumber": 14,
+        "countUnit": "days"
       },
       "action": {
         "type": "expire"
@@ -91,7 +93,8 @@ resource "aws_ecr_lifecycle_policy" "checkout_service" {
       "selection": {
         "tagStatus": "untagged",
         "countType": "sinceImagePushed",
-        "countNumber": 14
+        "countNumber": 14,
+        "countUnit": "days"
       },
       "action": {
         "type": "expire"
