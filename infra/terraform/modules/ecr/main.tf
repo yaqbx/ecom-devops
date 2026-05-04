@@ -38,12 +38,19 @@ resource "aws_ecr_lifecycle_policy" "product_catalog" {
   
   policy = jsonencode({
     rules = [{
-      description = "Expire untagged images older than 14 days"
+      rulePriority = 1
+      description  = "Expire untagged images older than 14 days"
       selection = {
         tag_status   = "untagged"
         count_type   = "sinceImagePushed"
         count_number = 14
       }
+      action = {
+        type = "expire"
+      }
+    }]
+  })
+}
       action = {
         type = "expire"
       }
@@ -55,7 +62,8 @@ resource "aws_ecr_lifecycle_policy" "user_management" {
   
   policy = jsonencode({
     rules = [{
-      description = "Expire untagged images older than 14 days"
+      rulePriority = 1
+      description  = "Expire untagged images older than 14 days"
       selection = {
         tag_status   = "untagged"
         count_type   = "sinceImagePushed"
@@ -67,17 +75,30 @@ resource "aws_ecr_lifecycle_policy" "user_management" {
     }]
   })
 }
+      action = {
+        type = "expire"
+      }
+    }]
+  })
+}
 resource "aws_ecr_lifecycle_policy" "checkout_service" {
   repository = aws_ecr_repository.checkout_service.name
   
   policy = jsonencode({
     rules = [{
-      description = "Expire untagged images older than 14 days"
+      rulePriority = 1
+      description  = "Expire untagged images older than 14 days"
       selection = {
         tag_status   = "untagged"
         count_type   = "sinceImagePushed"
         count_number = 14
       }
+      action = {
+        type = "expire"
+      }
+    }]
+  })
+}
       action = {
         type = "expire"
       }
