@@ -39,7 +39,7 @@ jobs:
         if: github.event_name == 'pull_request'
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::163841615263:role/terraform-github-role-pr
+          role-to-assume: arn:aws:iam::163841615263:role/terraform-github-role
           aws-region: eu-north-1
       - name: Configure AWS credentials (OIDC - dispatch)
         if: github.event_name == 'workflow_dispatch'
