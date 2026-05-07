@@ -1,15 +1,15 @@
 resource "aws_ecr_repository" "product_catalog" {
-  name                 = "product-catalog"
+  name = "product-catalog"
   image_tag_mutability = "MUTABLE"
-  
+
   image_scanning_configuration {
-    scan_on_push = true
+    scan_on_push = false
   }
-  
+
   encryption_configuration {
     encryption_type = "AES256"
   }
-  
+
   tags = var.tags
 }
 
@@ -18,7 +18,7 @@ resource "aws_ecr_repository" "user_management" {
   image_tag_mutability = "MUTABLE"
   
   image_scanning_configuration {
-    scan_on_push = true
+    scan_on_push = false
   }
   
   tags = var.tags
@@ -29,7 +29,7 @@ resource "aws_ecr_repository" "checkout_service" {
   image_tag_mutability = "MUTABLE"
   
   image_scanning_configuration {
-    scan_on_push = true
+    scan_on_push = false
   }
   
   tags = var.tags
@@ -42,12 +42,22 @@ resource "aws_ecr_lifecycle_policy" "product_catalog" {
   "rules": [
     {
       "rulePriority": 1,
-      "description": "Expire untagged images older than 14 days",
+      "description": "Keep only 1 most recent image",
       "selection": {
-        "tagStatus": "untagged",
-        "countType": "sinceImagePushed",
-        "countNumber": 14,
-        "countUnit": "days"
+        "tagStatus": "tagged",
+        "tagPrefixList": ["latest"],
+        "countType": "imageCountMoreThan",
+        "countNumber": 1
+      },
+      "action": {
+        "type": "expire"
+      }
+    },
+    {
+      "rulePriority": 2,
+      "description": "Expire untagged images immediately",
+      "selection": {
+        "tagStatus": "untagged"
       },
       "action": {
         "type": "expire"
@@ -65,12 +75,22 @@ resource "aws_ecr_lifecycle_policy" "user_management" {
   "rules": [
     {
       "rulePriority": 1,
-      "description": "Expire untagged images older than 14 days",
+      "description": "Keep only 1 most recent image",
       "selection": {
-        "tagStatus": "untagged",
-        "countType": "sinceImagePushed",
-        "countNumber": 14,
-        "countUnit": "days"
+        "tagStatus": "tagged",
+        "tagPrefixList": ["latest"],
+        "countType": "imageCountMoreThan",
+        "countNumber": 1
+      },
+      "action": {
+        "type": "expire"
+      }
+    },
+    {
+      "rulePriority": 2,
+      "description": "Expire untagged images immediately",
+      "selection": {
+        "tagStatus": "untagged"
       },
       "action": {
         "type": "expire"
@@ -89,12 +109,22 @@ resource "aws_ecr_lifecycle_policy" "checkout_service" {
   "rules": [
     {
       "rulePriority": 1,
-      "description": "Expire untagged images older than 14 days",
+      "description": "Keep only 1 most recent image",
       "selection": {
-        "tagStatus": "untagged",
-        "countType": "sinceImagePushed",
-        "countNumber": 14,
-        "countUnit": "days"
+        "tagStatus": "tagged",
+        "tagPrefixList": ["latest"],
+        "countType": "imageCountMoreThan",
+        "countNumber": 1
+      },
+      "action": {
+        "type": "expire"
+      }
+    },
+    {
+      "rulePriority": 2,
+      "description": "Expire untagged images immediately",
+      "selection": {
+        "tagStatus": "untagged"
       },
       "action": {
         "type": "expire"
