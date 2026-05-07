@@ -57,7 +57,10 @@ resource "aws_ecr_lifecycle_policy" "product_catalog" {
       "rulePriority": 2,
       "description": "Expire untagged images immediately",
       "selection": {
-        "tagStatus": "untagged"
+        "tagStatus": "untagged",
+        "countType": "sinceImagePushed",
+        "countNumber": 0,
+        "countUnit": "days"
       },
       "action": {
         "type": "expire"
@@ -90,7 +93,10 @@ resource "aws_ecr_lifecycle_policy" "user_management" {
       "rulePriority": 2,
       "description": "Expire untagged images immediately",
       "selection": {
-        "tagStatus": "untagged"
+        "tagStatus": "untagged",
+        "countType": "sinceImagePushed",
+        "countNumber": 0,
+        "countUnit": "days"
       },
       "action": {
         "type": "expire"
@@ -124,7 +130,10 @@ resource "aws_ecr_lifecycle_policy" "checkout_service" {
       "rulePriority": 2,
       "description": "Expire untagged images immediately",
       "selection": {
-        "tagStatus": "untagged"
+        "tagStatus": "untagged",
+        "countType": "sinceImagePushed",
+        "countNumber": 0,
+        "countUnit": "days"
       },
       "action": {
         "type": "expire"
