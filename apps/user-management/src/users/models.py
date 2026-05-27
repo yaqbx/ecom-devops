@@ -83,35 +83,35 @@ class User(AbstractBaseUser, PermissionsMixin):
     
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['first_name', 'last_name']
-    
-class Meta:
-    verbose_name = 'User'
-    verbose_name_plural = 'Users'
-    ordering = ['-date_joined']
-    indexes = [
-        models.Index(fields=['email']),
-        # models.Index(fields=['company']),  # Removed - Company app not implemented yet
-        models.Index(fields=['role']),
-        models.Index(fields=['status']),
-    ]
-    
+
+    class Meta:
+        verbose_name = 'User'
+        verbose_name_plural = 'Users'
+        ordering = ['-date_joined']
+        indexes = [
+            models.Index(fields=['email']),
+            # models.Index(fields=['company']),  # Removed - Company app not implemented yet
+            models.Index(fields=['role']),
+            models.Index(fields=['status']),
+        ]
+
     def __str__(self):
         return f"{self.email} ({self.get_full_name()})"
-    
+
     def get_full_name(self):
         return f"{self.first_name} {self.last_name}".strip()
-    
+
     def get_short_name(self):
         return self.first_name
-    
+
     @property
     def is_company_user(self):
         return False  # Company app not implemented yet
-    
+
     @property
     def can_rent_equipment(self):
         return self.status == 'active' and self.email_verified
-    
+
     def record_login(self, ip_address=None):
         self.last_login = django_timezone.now()
         self.login_attempts = 0

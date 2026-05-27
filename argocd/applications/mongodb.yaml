@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: mongodb
+  namespace: argocd
+spec:
+  project: ecommerce
+  source:
+    repoURL: https://github.com/lukaszjakubowski/ecom-devops
+    targetRevision: main
+    path: charts/database
+    helm:
+      valueFiles:
+        - ../../helmfiles/mongodb.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: ecommerce
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

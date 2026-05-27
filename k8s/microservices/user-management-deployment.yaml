@@ -26,7 +26,7 @@ spec:
     spec:
       containers:
         - name: user-management
-          image: user-management:latest
+          image: 163841615263.dkr.ecr.eu-north-1.amazonaws.com/user-management:v1.0.0-abca63e
           ports:
             - containerPort: 8000
               name: http

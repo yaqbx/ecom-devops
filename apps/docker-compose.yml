@@ -71,7 +71,7 @@ services:
       NODE_ENV: development
       PORT: 3000
       MONGODB_URI: mongodb://mongodb:27017/equipment_catalog
-      ALLOWED_ORIGINS: "http://localhost:3000,http://localhost:8000"
+      ALLOWED_ORIGINS: "http://localhost:3000,http://localhost:8000,http://localhost:8080"
     ports:
       - "3000:3000"
     depends_on:
@@ -81,6 +81,8 @@ services:
       - equipment-network
     volumes:
       - ./product-catalog/logs:/app/logs
+    command: >
+      sh -c "node scripts/seed-data.js && node src/app.js"
 
   # User Management Service (Django)
   user-management:
@@ -105,7 +107,7 @@ services:
     networks:
       - equipment-network
     command: >
-      sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+      sh -c "python manage.py migrate && python manage.py seed_users --password Test1234! && python manage.py runserver 0.0.0.0:8000"
 
   # Checkout Service (FastAPI)
   checkout-service:
@@ -121,6 +123,9 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
       REDIS_DB: 0
+      PRODUCT_CATALOG_URL: "http://product-catalog:3000"
+      USER_MANAGEMENT_URL: "http://user-management:8000"
+      PAYMENT_MOCK_URL: "http://payment-mock:8100"
     ports:
       - "8001:8000"
     depends_on:
@@ -128,6 +133,37 @@ services:
         condition: service_healthy
     networks:
       - equipment-network
+
+  # Mock Payment Service
+  payment-mock:
+    build:
+      context: ./payment-mock
+      dockerfile: Dockerfile
+    container_name: payment-mock-api
+    restart: unless-stopped
+    environment:
+      PORT: 8100
+      ENV: development
+    ports:
+      - "8100:8100"
+    networks:
+      - equipment-network
+
+  # Frontend SPA (nginx)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: frontend-nginx
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    networks:
+      - equipment-network
+    depends_on:
+      - product-catalog
+      - user-management
+      - checkout-service
 
 # ==================== NETWORKS & VOLUMES ====================
 networks:

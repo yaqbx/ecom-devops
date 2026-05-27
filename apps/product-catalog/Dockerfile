@@ -24,6 +24,7 @@ COPY --from=builder /app/node_modules ./node_modules
 
 # Copy application source code
 COPY src/ ./src/
+COPY scripts/ ./scripts/
 COPY package*.json ./
 
 # Create logs directory for winston

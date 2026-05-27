@@ -1,0 +1,17 @@
+image:
+  repository: ""
+  tag: latest
+port: 27017
+resources:
+  requests:
+    cpu: 250m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+storage:
+  size: 1Gi
+  storageClassName: gp2
+service:
+  port: 27017
+env: []

@@ -1,0 +1,17 @@
+namespace: ecommerce
+image:
+  repository: postgres
+  tag: 16
+port: 5432
+service:
+  port: 5432
+storage:
+  size: 1Gi
+  storageClassName: gp2
+env:
+  - name: POSTGRES_DB
+    value: ecommerce
+  - name: POSTGRES_USER
+    value: ecommerce
+  - name: POSTGRES_PASSWORD
+    value: ecommerce

@@ -52,6 +52,9 @@ resource "aws_eks_cluster" "main" {
     endpoint_private_access = true
     endpoint_public_access  = true
   }
+  access_config {
+  authentication_mode = "API_AND_CONFIG_MAP"
+}
   enabled_cluster_log_types = var.enable_control_plane_logging ? ["api", "audit", "auth", "controllerManager", "scheduler"] : []
   depends_on = [aws_iam_role_policy_attachment.eks_cluster_policy]
   tags = var.tags
