@@ -29,6 +29,8 @@ const logger = winston.createLogger({
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+app.set('etag', false);
+
 // Security middleware
 app.use(helmet());
 app.use(cors({

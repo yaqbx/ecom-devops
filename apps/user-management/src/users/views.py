@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from django.contrib.auth import get_user_model, authenticate
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework_simplejwt.tokens import RefreshToken
 from .serializers import (
     UserSerializer, UserCreateSerializer, UserUpdateSerializer,
     UserLoginSerializer, UserPasswordChangeSerializer, UserRoleUpdateSerializer,
@@ -47,7 +48,7 @@ class UserViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['post'], permission_classes=[AllowAny])
     def login(self, request):
-        """User login"""
+        """User login - returns JWT tokens + user data"""
         serializer = UserLoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         
@@ -64,9 +65,12 @@ class UserViewSet(viewsets.ModelViewSet):
                 )
             
             user.record_login(request.META.get('REMOTE_ADDR'))
+            refresh = RefreshToken.for_user(user)
             user_serializer = UserSerializer(user)
             return Response({
                 'user': user_serializer.data,
+                'access': str(refresh.access_token),
+                'refresh': str(refresh),
                 'message': 'Login successful'
             })
         

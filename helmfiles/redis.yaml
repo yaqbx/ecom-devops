@@ -1,0 +1,10 @@
+namespace: ecommerce
+image:
+  repository: redis
+  tag: 7-alpine
+port: 6379
+service:
+  port: 6379
+storage:
+  size: 512Mi
+  storageClassName: gp2

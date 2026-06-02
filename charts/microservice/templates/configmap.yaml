@@ -1,0 +1,9 @@
+{{- if .Values.configmap.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "microservice.fullname" . }}-config
+  namespace: {{ .Values.namespace | default "ecommerce" }}
+data:
+  {{- toYaml .Values.configmap.data | nindent 2 }}
+{{- end }}

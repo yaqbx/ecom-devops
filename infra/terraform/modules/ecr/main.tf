@@ -1,6 +1,7 @@
 resource "aws_ecr_repository" "product_catalog" {
   name = "product-catalog"
   image_tag_mutability = "MUTABLE"
+  force_delete = true
 
   image_scanning_configuration {
     scan_on_push = false
@@ -16,6 +17,7 @@ resource "aws_ecr_repository" "product_catalog" {
 resource "aws_ecr_repository" "user_management" {
   name                 = "user-management"
   image_tag_mutability = "MUTABLE"
+  force_delete = true
   
   image_scanning_configuration {
     scan_on_push = false
@@ -27,6 +29,7 @@ resource "aws_ecr_repository" "user_management" {
 resource "aws_ecr_repository" "checkout_service" {
   name                 = "checkout-service"
   image_tag_mutability = "MUTABLE"
+  force_delete = true
   
   image_scanning_configuration {
     scan_on_push = false
