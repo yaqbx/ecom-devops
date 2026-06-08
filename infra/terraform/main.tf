@@ -13,21 +13,21 @@ module "eks" {
   vpc_id             = module.vpc.vpc_id
   private_subnet_ids = module.vpc.private_subnet_ids
 
-  cluster_name    = var.eks_cluster_name
-  cluster_version = var.eks_cluster_version
-  node_group_name = var.eks_node_group_name
-  instance_types  = var.eks_instance_types
-  desired_size    = var.eks_desired_size
-  min_size        = var.eks_min_size
-  max_size        = var.eks_max_size
+  cluster_name                 = var.eks_cluster_name
+  cluster_version              = var.eks_cluster_version
+  node_group_name              = var.eks_node_group_name
+  instance_types               = var.eks_instance_types
+  desired_size                 = var.eks_desired_size
+  min_size                     = var.eks_min_size
+  max_size                     = var.eks_max_size
   enable_control_plane_logging = var.eks_enable_logging
-  tags            = var.eks_tags
+  tags                         = var.eks_tags
 }
 
 module "ecr" {
   source = "./modules/ecr"
   tags = {
-    Project = "ecom-devops"
+    Project     = "ecom-devops"
     Environment = "dev"
   }
 }

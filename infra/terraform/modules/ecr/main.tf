@@ -37,6 +37,31 @@ resource "aws_ecr_repository" "checkout_service" {
   
   tags = var.tags
 }
+
+resource "aws_ecr_repository" "frontend" {
+  name = "frontend"
+  image_tag_mutability = "MUTABLE"
+  force_delete = true
+
+  image_scanning_configuration {
+    scan_on_push = false
+  }
+
+  tags = var.tags
+}
+
+resource "aws_ecr_repository" "payment_mock" {
+  name = "payment-mock"
+  image_tag_mutability = "MUTABLE"
+  force_delete = true
+
+  image_scanning_configuration {
+    scan_on_push = false
+  }
+
+  tags = var.tags
+}
+
 resource "aws_ecr_lifecycle_policy" "product_catalog" {
   repository = aws_ecr_repository.product_catalog.name
   
@@ -113,6 +138,80 @@ EOF
 resource "aws_ecr_lifecycle_policy" "checkout_service" {
   repository = aws_ecr_repository.checkout_service.name
   
+  policy = <<EOF
+{
+  "rules": [
+    {
+      "rulePriority": 1,
+      "description": "Keep only 1 most recent image",
+      "selection": {
+        "tagStatus": "tagged",
+        "tagPrefixList": ["latest"],
+        "countType": "imageCountMoreThan",
+        "countNumber": 1
+      },
+      "action": {
+        "type": "expire"
+      }
+    },
+    {
+      "rulePriority": 2,
+      "description": "Expire untagged images immediately",
+      "selection": {
+        "tagStatus": "untagged",
+        "countType": "sinceImagePushed",
+        "countNumber": 1,
+        "countUnit": "days"
+      },
+      "action": {
+        "type": "expire"
+      }
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_ecr_lifecycle_policy" "frontend" {
+  repository = aws_ecr_repository.frontend.name
+
+  policy = <<EOF
+{
+  "rules": [
+    {
+      "rulePriority": 1,
+      "description": "Keep only 1 most recent image",
+      "selection": {
+        "tagStatus": "tagged",
+        "tagPrefixList": ["latest"],
+        "countType": "imageCountMoreThan",
+        "countNumber": 1
+      },
+      "action": {
+        "type": "expire"
+      }
+    },
+    {
+      "rulePriority": 2,
+      "description": "Expire untagged images immediately",
+      "selection": {
+        "tagStatus": "untagged",
+        "countType": "sinceImagePushed",
+        "countNumber": 1,
+        "countUnit": "days"
+      },
+      "action": {
+        "type": "expire"
+      }
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_ecr_lifecycle_policy" "payment_mock" {
+  repository = aws_ecr_repository.payment_mock.name
+
   policy = <<EOF
 {
   "rules": [
