@@ -59,7 +59,21 @@ resource "aws_eks_cluster" "main" {
   depends_on = [aws_iam_role_policy_attachment.eks_cluster_policy]
   tags = var.tags
 }
-# 4. EKS Managed Node Group
+# 4. Launch Template for Node Group (IMDS hop limit for pods)
+resource "aws_launch_template" "node_group" {
+  name_prefix            = "${var.cluster_name}-ng-"
+  update_default_version = true
+
+  metadata_options {
+    http_endpoint               = "enabled"
+    http_tokens                 = "required"
+    http_put_response_hop_limit = 2
+  }
+
+  tags = var.tags
+}
+
+# 5. EKS Managed Node Group
 resource "aws_eks_node_group" "main" {
   cluster_name    = aws_eks_cluster.main.name
   node_group_name = var.node_group_name
@@ -71,6 +85,13 @@ resource "aws_eks_node_group" "main" {
     max_size     = var.max_size
     min_size     = var.min_size
   }
+  launch_template {
+    id      = aws_launch_template.node_group.id
+    version = aws_launch_template.node_group.default_version
+  }
+  update_config {
+    max_unavailable = 1
+  }
   depends_on = [
     aws_iam_role_policy_attachment.eks_worker_node_policy,
     aws_iam_role_policy_attachment.eks_cni_policy,
@@ -78,7 +99,7 @@ resource "aws_eks_node_group" "main" {
   ]
   tags = var.tags
 }
-# 5. OIDC Provider (Dynamic Thumbprint)
+# 6. OIDC Provider (Dynamic Thumbprint)
 data "tls_certificate" "eks" {
   url = aws_eks_cluster.main.identity[0].oidc[0].issuer
 }
