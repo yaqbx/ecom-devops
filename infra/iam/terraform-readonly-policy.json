@@ -27,7 +27,13 @@
           "iam:GetRole",
           "iam:ListRolePolicies",
           "iam:GetRolePolicy",
-          "iam:ListAttachedRolePolicies"
+          "iam:ListAttachedRolePolicies",
+          "ecr:ListTagsForResource",
+          "eks:DescribeCluster",
+          "eks:DescribeNodegroup",
+          "iam:GetPolicy",
+          "iam:GetPolicyVersion",
+          "iam:GetOpenIDConnectProvider"
         ],
         "Resource": "*"
       }

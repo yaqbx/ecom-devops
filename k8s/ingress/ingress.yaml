@@ -1,0 +1,55 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ecom-ingress
+  namespace: ecommerce
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+spec:
+  ingressClassName: alb
+  rules:
+    - http:
+        paths:
+          - path: /api/v1/equipment
+            pathType: Prefix
+            backend:
+              service:
+                name: product-catalog
+                port:
+                  number: 3000
+          - path: /api/v1/auth
+            pathType: Prefix
+            backend:
+              service:
+                name: user-management
+                port:
+                  number: 8000
+          - path: /api/v1/quotes
+            pathType: Prefix
+            backend:
+              service:
+                name: checkout-service
+                port:
+                  number: 8000
+          - path: /api/v1/orders
+            pathType: Prefix
+            backend:
+              service:
+                name: checkout-service
+                port:
+                  number: 8000
+          - path: /api/v1/payments
+            pathType: Prefix
+            backend:
+              service:
+                name: payment-mock
+                port:
+                  number: 8100
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend
+                port:
+                  number: 8080
