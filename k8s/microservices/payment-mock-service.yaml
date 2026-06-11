@@ -6,7 +6,7 @@ metadata:
   labels:
     app: payment-mock
     tier: backend
-  spec:
+spec:
   type: ClusterIP
   selector:
     app: payment-mock

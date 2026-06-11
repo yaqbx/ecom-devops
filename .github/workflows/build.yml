@@ -72,3 +72,8 @@ jobs:
           kubectl apply -f k8s/secrets/
           kubectl apply -f k8s/databases/
           kubectl apply -f k8s/microservices/
+          kubectl set image deployment/product-catalog product-catalog=${{ vars.AWS_ACCOUNT_ID || '163841615263' }}.dkr.ecr.eu-north-1.amazonaws.com/product-catalog:v1.0.0-${{ steps.sha.outputs.short_sha }} -n ecommerce
+          kubectl set image deployment/user-management user-management=${{ vars.AWS_ACCOUNT_ID || '163841615263' }}.dkr.ecr.eu-north-1.amazonaws.com/user-management:v1.0.0-${{ steps.sha.outputs.short_sha }} -n ecommerce
+          kubectl set image deployment/checkout-service checkout-service=${{ vars.AWS_ACCOUNT_ID || '163841615263' }}.dkr.ecr.eu-north-1.amazonaws.com/checkout-service:v1.0.0-${{ steps.sha.outputs.short_sha }} -n ecommerce
+          kubectl set image deployment/frontend frontend=${{ vars.AWS_ACCOUNT_ID || '163841615263' }}.dkr.ecr.eu-north-1.amazonaws.com/frontend:v1.0.0-${{ steps.sha.outputs.short_sha }} -n ecommerce
+          kubectl set image deployment/payment-mock payment-mock=${{ vars.AWS_ACCOUNT_ID || '163841615263' }}.dkr.ecr.eu-north-1.amazonaws.com/payment-mock:v1.0.0-${{ steps.sha.outputs.short_sha }} -n ecommerce
