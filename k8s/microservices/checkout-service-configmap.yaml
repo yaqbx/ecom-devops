@@ -14,6 +14,9 @@ data:
   ENV: "production"
   REDIS_HOST: "redis"
   REDIS_PORT: "6379"
+  PAYMENT_MOCK_URL: "http://payment-mock:8100"
+  PRODUCT_CATALOG_URL: "http://product-catalog:3000"
+  USER_MANAGEMENT_URL: "http://user-management:8000"
   # REDIS CONFIG EXPLAINED:
   # - Host: redis (Kubernetes service name)
   # - Port: 6379 (Redis default)

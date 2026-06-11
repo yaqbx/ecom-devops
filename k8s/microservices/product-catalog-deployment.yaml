@@ -30,7 +30,7 @@ spec:
     spec:
       containers:
         - name: product-catalog
-          image: 163841615263.dkr.ecr.eu-north-1.amazonaws.com/product-catalog:v1.0.0-abca63e
+          image: 163841615263.dkr.ecr.eu-north-1.amazonaws.com/product-catalog:v1.0.0-2b4f5c4
           # IMAGE EXPLAINED:
           # - Built from Dockerfile in apps/product-catalog/
           # - 'latest' tag = most recent build
