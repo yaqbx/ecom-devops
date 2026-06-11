@@ -44,6 +44,8 @@ resource "aws_subnet" "public" {
     Name        = "ecom-devops-public-${count.index}"
     Tier        = "public"
     Environment = "dev"
+    "kubernetes.io/cluster/ecom-devops-eks" = "shared"
+    "kubernetes.io/role/elb"                = "1"
   }
 }
 # --------------------------------------------------------------
@@ -58,6 +60,8 @@ resource "aws_subnet" "private" {
     Name        = "ecom-devops-private-${count.index}"
     Tier        = "private"
     Environment = "dev"
+    "kubernetes.io/cluster/ecom-devops-eks"         = "shared"
+    "kubernetes.io/role/internal-elb"               = "1"
   }
 }
 # --------------------------------------------------------------
