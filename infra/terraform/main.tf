@@ -31,3 +31,11 @@ module "ecr" {
     Environment = "dev"
   }
 }
+
+module "iam" {
+  source = "./modules/iam"
+  tags = {
+    Project     = "ecom-devops"
+    Environment = "dev"
+  }
+}
