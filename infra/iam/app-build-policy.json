@@ -16,6 +16,14 @@
       "Resource": "arn:aws:ecr:eu-north-1:163841615263:repository/*"
     },
     {
+      "Sid": "EC2DescribeForALB",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:DescribeVpcs"
+      ],
+      "Resource": "*"
+    },
+    {
       "Sid": "ECRLogin",
       "Effect": "Allow",
       "Action": [
