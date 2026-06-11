@@ -42,12 +42,12 @@ variable "eks_node_group_name" {
 variable "eks_instance_types" {
   description = "Instance types for the node group"
   type        = list(string)
-  default     = ["t3.micro"]
+  default     = ["t3.small"]
 }
 variable "eks_desired_size" {
   description = "Desired number of nodes"
   type        = number
-  default     = 2
+  default     = 3
 }
 variable "eks_min_size" {
   description = "Minimum number of nodes"
@@ -57,7 +57,7 @@ variable "eks_min_size" {
 variable "eks_max_size" {
   description = "Maximum number of nodes"
   type        = number
-  default     = 2
+  default     = 3
 }
 variable "eks_enable_logging" {
   description = "Enable control plane logging (Costs extra)"
