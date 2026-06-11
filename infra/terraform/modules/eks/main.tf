@@ -141,3 +141,50 @@ resource "aws_iam_role_policy_attachment" "alb_controller" {
   role       = aws_iam_role.alb_controller.name
   policy_arn = aws_iam_policy.alb_controller.arn
 }
+
+resource "aws_eks_access_entry" "terraform_github" {
+  cluster_name  = aws_eks_cluster.main.name
+  principal_arn = "arn:aws:iam::163841615263:role/terraform-github-role"
+  type          = "STANDARD"
+  user_name     = "arn:aws:sts::163841615263:assumed-role/terraform-github-role/{{SessionName}}"
+}
+
+resource "aws_eks_access_policy_association" "terraform_github" {
+  cluster_name  = aws_eks_cluster.main.name
+  principal_arn = aws_eks_access_entry.terraform_github.principal_arn
+  policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+  access_scope {
+    type = "cluster"
+  }
+}
+
+resource "aws_eks_access_entry" "terraform_github_pr" {
+  cluster_name  = aws_eks_cluster.main.name
+  principal_arn = "arn:aws:iam::163841615263:role/terraform-github-role-pr"
+  type          = "STANDARD"
+  user_name     = "arn:aws:sts::163841615263:assumed-role/terraform-github-role-pr/{{SessionName}}"
+}
+
+resource "aws_eks_access_policy_association" "terraform_github_pr" {
+  cluster_name  = aws_eks_cluster.main.name
+  principal_arn = aws_eks_access_entry.terraform_github_pr.principal_arn
+  policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+  access_scope {
+    type = "cluster"
+  }
+}
+
+resource "aws_eks_access_entry" "app_build" {
+  cluster_name  = aws_eks_cluster.main.name
+  principal_arn = "arn:aws:iam::163841615263:role/app-build-role"
+  type          = "STANDARD"
+}
+
+resource "aws_eks_access_policy_association" "app_build" {
+  cluster_name  = aws_eks_cluster.main.name
+  principal_arn = aws_eks_access_entry.app_build.principal_arn
+  policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+  access_scope {
+    type = "cluster"
+  }
+}
