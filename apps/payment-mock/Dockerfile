@@ -7,7 +7,7 @@ ENV PYTHONPATH=/app
 
 WORKDIR /app
 
-RUN pip install --no-cache-dir fastapi uvicorn[standard] pydantic gunicorn
+RUN pip install --no-cache-dir fastapi uvicorn[standard] pydantic gunicorn && pip install --no-cache-dir --upgrade pip wheel setuptools
 
 RUN pip install --no-cache-dir gunicorn
 
