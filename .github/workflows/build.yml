@@ -108,7 +108,7 @@ jobs:
           kubectl apply -n dev -f k8s/secrets/
           kubectl apply -n dev -f k8s/databases/
           kubectl apply -n dev -f k8s/microservices/
-          kubectl apply -n dev -f k8s/ingress/
+          
 
           for service in product-catalog user-management checkout-service frontend payment-mock; do
             kubectl set image deployment/$service $service=${{ vars.AWS_ACCOUNT_ID || '163841615263' }}.dkr.ecr.eu-north-1.amazonaws.com/$service:v1.0.0-${{ steps.sha.outputs.short_sha }} -n dev
