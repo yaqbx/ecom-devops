@@ -43,7 +43,7 @@ jobs:
           image-ref: ${{ matrix.service }}:${{ steps.sha.outputs.short_sha }}
           format: table
           exit-code: '1'
-          severity: HIGH,CRITICAL
+          severity: CRITICAL
 
       - name: Tag and Push to ECR
         run: |

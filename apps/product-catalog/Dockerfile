@@ -1,5 +1,5 @@
 # Multi-stage build for production optimization
-FROM node:20-alpine AS builder
+FROM node:22-alpine AS builder
 
 WORKDIR /app
 
@@ -12,7 +12,7 @@ RUN npm ci --omit=dev && npm cache clean --force
 RUN npm audit fix --audit-level=none && npm cache clean --force
 
 # Production stage
-FROM node:20-alpine
+FROM node:22-alpine
  
 # Install curl for healthchecks
 RUN apk upgrade --no-cache && apk add --no-cache curl
