@@ -31,6 +31,7 @@
           "ecr:ListTagsForResource",
           "eks:DescribeCluster",
           "eks:DescribeNodegroup",
+          "eks:DescribeAccessEntry",
           "iam:GetPolicy",
           "iam:GetPolicyVersion",
           "iam:GetOpenIDConnectProvider"
