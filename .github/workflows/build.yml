@@ -5,17 +5,17 @@ on:
     paths:
       - 'apps/**'
       - '.github/workflows/build.yml'
-
   workflow_dispatch:
 jobs:
   build:
     name: Build and Push Images
     runs-on: ubuntu-latest
-    
+    strategy:
+      matrix:
+        service: [product-catalog, user-management, checkout-service, frontend, payment-mock]
     permissions:
       id-token: write
       contents: read
-    
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -34,35 +34,52 @@ jobs:
         id: sha
         run: echo "short_sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
       
-      - name: Build Product Catalog
-        run: |
-          docker build -t product-catalog:${{ steps.sha.outputs.short_sha }} apps/product-catalog
-          docker tag product-catalog:${{ steps.sha.outputs.short_sha }} ${{ vars.AWS_ACCOUNT_ID || '163841615263' }}.dkr.ecr.eu-north-1.amazonaws.com/product-catalog:v1.0.0-${{ steps.sha.outputs.short_sha }}
-          docker push ${{ vars.AWS_ACCOUNT_ID || '163841615263' }}.dkr.ecr.eu-north-1.amazonaws.com/product-catalog:v1.0.0-${{ steps.sha.outputs.short_sha }}
-      
-      - name: Build User Management
-        run: |
-          docker build -t user-management:${{ steps.sha.outputs.short_sha }} apps/user-management
-          docker tag user-management:${{ steps.sha.outputs.short_sha }} ${{ vars.AWS_ACCOUNT_ID || '163841615263' }}.dkr.ecr.eu-north-1.amazonaws.com/user-management:v1.0.0-${{ steps.sha.outputs.short_sha }}
-          docker push ${{ vars.AWS_ACCOUNT_ID || '163841615263' }}.dkr.ecr.eu-north-1.amazonaws.com/user-management:v1.0.0-${{ steps.sha.outputs.short_sha }}
-      
-      - name: Build Checkout Service
-        run: |
-          docker build -t checkout-service:${{ steps.sha.outputs.short_sha }} apps/checkout-service
-          docker tag checkout-service:${{ steps.sha.outputs.short_sha }} ${{ vars.AWS_ACCOUNT_ID || '163841615263' }}.dkr.ecr.eu-north-1.amazonaws.com/checkout-service:v1.0.0-${{ steps.sha.outputs.short_sha }}
-          docker push ${{ vars.AWS_ACCOUNT_ID || '163841615263' }}.dkr.ecr.eu-north-1.amazonaws.com/checkout-service:v1.0.0-${{ steps.sha.outputs.short_sha }}
-      
-      - name: Build Frontend
-        run: |
-          docker build -t frontend:${{ steps.sha.outputs.short_sha }} apps/frontend
-          docker tag frontend:${{ steps.sha.outputs.short_sha }} ${{ vars.AWS_ACCOUNT_ID || '163841615263' }}.dkr.ecr.eu-north-1.amazonaws.com/frontend:v1.0.0-${{ steps.sha.outputs.short_sha }}
-          docker push ${{ vars.AWS_ACCOUNT_ID || '163841615263' }}.dkr.ecr.eu-north-1.amazonaws.com/frontend:v1.0.0-${{ steps.sha.outputs.short_sha }}
+      - name: Build image
+        run: docker build -t ${{ matrix.service }}:${{ steps.sha.outputs.short_sha }} apps/${{ matrix.service }}
 
-      - name: Build Payment Mock
+      - name: Scan image with Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ matrix.service }}:${{ steps.sha.outputs.short_sha }}
+          format: table
+          exit-code: '1'
+          severity: HIGH,CRITICAL
+
+      - name: Tag and Push to ECR
         run: |
-          docker build -t payment-mock:${{ steps.sha.outputs.short_sha }} apps/payment-mock
-          docker tag payment-mock:${{ steps.sha.outputs.short_sha }} ${{ vars.AWS_ACCOUNT_ID || '163841615263' }}.dkr.ecr.eu-north-1.amazonaws.com/payment-mock:v1.0.0-${{ steps.sha.outputs.short_sha }}
-          docker push ${{ vars.AWS_ACCOUNT_ID || '163841615263' }}.dkr.ecr.eu-north-1.amazonaws.com/payment-mock:v1.0.0-${{ steps.sha.outputs.short_sha }}
+          docker tag ${{ matrix.service }}:${{ steps.sha.outputs.short_sha }} ${{ vars.AWS_ACCOUNT_ID || '163841615263' }}.dkr.ecr.eu-north-1.amazonaws.com/${{ matrix.service }}:v1.0.0-${{ steps.sha.outputs.short_sha }}
+          docker push ${{ vars.AWS_ACCOUNT_ID || '163841615263' }}.dkr.ecr.eu-north-1.amazonaws.com/${{ matrix.service }}:v1.0.0-${{ steps.sha.outputs.short_sha }}
+ 
+  dependency-review:
+    name: Dependency Review
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/dependency-review-action@v4        
+          
+  deploy:
+    name: Deploy to EKS
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::163841615263:role/app-build-role
+          aws-region: eu-north-1
+      
+      - name: Extract short commit SHA
+        id: sha
+        run: echo "short_sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
       
       - name: Deploy to EKS
         run: |
@@ -86,14 +103,47 @@ jobs:
             exit 1
           }
 
-          kubectl apply -f k8s/namespace/
-          kubectl apply -f k8s/configmaps/
-          kubectl apply -f k8s/secrets/
-          kubectl apply -f k8s/databases/
-          kubectl apply -f k8s/microservices/
-          kubectl apply -f k8s/ingress/
-          kubectl set image deployment/product-catalog product-catalog=${{ vars.AWS_ACCOUNT_ID || '163841615263' }}.dkr.ecr.eu-north-1.amazonaws.com/product-catalog:v1.0.0-${{ steps.sha.outputs.short_sha }} -n ecommerce
-          kubectl set image deployment/user-management user-management=${{ vars.AWS_ACCOUNT_ID || '163841615263' }}.dkr.ecr.eu-north-1.amazonaws.com/user-management:v1.0.0-${{ steps.sha.outputs.short_sha }} -n ecommerce
-          kubectl set image deployment/checkout-service checkout-service=${{ vars.AWS_ACCOUNT_ID || '163841615263' }}.dkr.ecr.eu-north-1.amazonaws.com/checkout-service:v1.0.0-${{ steps.sha.outputs.short_sha }} -n ecommerce
-          kubectl set image deployment/frontend frontend=${{ vars.AWS_ACCOUNT_ID || '163841615263' }}.dkr.ecr.eu-north-1.amazonaws.com/frontend:v1.0.0-${{ steps.sha.outputs.short_sha }} -n ecommerce
-          kubectl set image deployment/payment-mock payment-mock=${{ vars.AWS_ACCOUNT_ID || '163841615263' }}.dkr.ecr.eu-north-1.amazonaws.com/payment-mock:v1.0.0-${{ steps.sha.outputs.short_sha }} -n ecommerce
+          kubectl apply -n dev -f k8s/namespace/
+          kubectl apply -n dev -f k8s/configmaps/
+          kubectl apply -n dev -f k8s/secrets/
+          kubectl apply -n dev -f k8s/databases/
+          kubectl apply -n dev -f k8s/microservices/
+          kubectl apply -n dev -f k8s/ingress/
+
+          for service in product-catalog user-management checkout-service frontend payment-mock; do
+            kubectl set image deployment/$service $service=${{ vars.AWS_ACCOUNT_ID || '163841615263' }}.dkr.ecr.eu-north-1.amazonaws.com/$service:v1.0.0-${{ steps.sha.outputs.short_sha }} -n dev
+          done
+  
+  deploy-prod:
+    name: Deploy to Prod
+    runs-on: ubuntu-latest
+    needs: deploy
+    environment: prod
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::163841615263:role/app-build-role
+          aws-region: eu-north-1
+
+      - name: Extract short commit SHA
+        id: sha
+        run: echo "short_sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+      - name: Deploy to Prod
+        run: |
+          aws eks update-kubeconfig --name ecom-devops-eks --region eu-north-1
+          kubectl apply -n prod -f k8s/namespace/prod-namespace.yaml
+          kubectl apply -n prod -f k8s/configmaps/
+          kubectl apply -n prod -f k8s/secrets/
+          kubectl apply -n prod -f k8s/databases/
+          kubectl apply -n prod -f k8s/microservices/
+          for service in product-catalog user-management checkout-service frontend payment-mock; do
+            kubectl set image deployment/$service $service=${{ vars.AWS_ACCOUNT_ID || '163841615263' }}.dkr.ecr.eu-north-1.amazonaws.com/$service:v1.0.0-${{ steps.sha.outputs.short_sha }} -n prod
+          done

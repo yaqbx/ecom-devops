@@ -42,6 +42,10 @@ resource "aws_iam_role_policy_attachment" "eks_container_registry" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
   role       = aws_iam_role.eks_node_group.name
 }
+resource "aws_iam_role_policy_attachment" "eks_ebs_csi" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEBSCSIDriverPolicy"
+  role       = aws_iam_role.eks_node_group.name
+}
 # 3. EKS Cluster
 resource "aws_eks_cluster" "main" {
   name     = var.cluster_name
@@ -96,6 +100,7 @@ resource "aws_eks_node_group" "main" {
     aws_iam_role_policy_attachment.eks_worker_node_policy,
     aws_iam_role_policy_attachment.eks_cni_policy,
     aws_iam_role_policy_attachment.eks_container_registry,
+    aws_iam_role_policy_attachment.eks_ebs_csi,
   ]
   tags = var.tags
 }

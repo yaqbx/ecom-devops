@@ -7,7 +7,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: checkout-service
-  namespace: ecommerce
   labels:
     app: checkout-service
     tier: backend
@@ -26,7 +25,7 @@ spec:
     spec:
       containers:
         - name: checkout-service
-          image: 163841615263.dkr.ecr.eu-north-1.amazonaws.com/checkout-service:v1.0.0-2b4f5c4
+          image: 163841615263.dkr.ecr.eu-north-1.amazonaws.com/checkout-service:v1.0.0-46ccac4
           ports:
             - containerPort: 8000
               name: http

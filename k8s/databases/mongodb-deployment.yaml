@@ -25,7 +25,6 @@ metadata:
   # - Used by kubectl: kubectl get deployment mongodb
   # - Other resources reference this name (e.g., in labels or comments)
   
-  namespace: ecommerce
   # NAMESPACE EXPLAINED:
   # - This Deployment belongs to the 'ecommerce' namespace
   # - Must create the namespace first (see namespace.yaml)

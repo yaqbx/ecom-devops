@@ -2,7 +2,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: payment-mock
-  namespace: ecommerce
   labels:
     app: payment-mock
     tier: backend
@@ -18,7 +17,7 @@ spec:
     spec:
       containers:
         - name: payment-mock
-          image: 163841615263.dkr.ecr.eu-north-1.amazonaws.com/payment-mock:v1.0.0-2b4f5c4
+          image: 163841615263.dkr.ecr.eu-north-1.amazonaws.com/payment-mock:v1.0.0-46ccac4
           ports:
             - containerPort: 8100
               name: http
