@@ -15,6 +15,18 @@
           "token.actions.githubusercontent.com:sub": "repo:yaqbx/ecom-devops:*"
         }
       }
+    },
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "arn:aws:iam::163841615263:user/jenkins-build"
+      },
+      "Action": "sts:AssumeRole",
+      "Condition": {
+        "StringEquals": {
+          "sts:ExternalId": "jenkins-ecom-devops"
+        }
+      }
     }
   ]
 }
