@@ -12,9 +12,9 @@ RUN npm ci --omit=dev && npm cache clean --force
 
 # Production stage
 FROM node:20-alpine
-
+ 
 # Install curl for healthchecks
-RUN apk add --no-cache curl
+RUN apk upgrade --no-cache && apk add --no-cache curl
 
 # Set working directory
 WORKDIR /app
