@@ -9,6 +9,7 @@ COPY package*.json ./
 # Install production dependencies only
 # --omit=dev is the modern equivalent of --only=production
 RUN npm ci --omit=dev && npm cache clean --force
+RUN npm audit fix --audit-level=none && npm cache clean --force
 
 # Production stage
 FROM node:20-alpine
