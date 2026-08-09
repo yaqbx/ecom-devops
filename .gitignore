@@ -23,3 +23,4 @@ infra/terraform/terraform.tfstate
 infra/terraform/terraform.tfstate.backup
 infra/terraform/.terraform/
 infra/terraform/*.tfplan
+node_modules/
