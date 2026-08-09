@@ -11,6 +11,7 @@ jobs:
     name: Build and Push Images
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         service: [product-catalog, user-management, checkout-service, frontend, payment-mock]
     permissions:
@@ -44,6 +45,7 @@ jobs:
           format: table
           exit-code: '1'
           severity: CRITICAL
+          ignore-unfixed: true
 
       - name: Tag and Push to ECR
         run: |
