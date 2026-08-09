@@ -16,6 +16,8 @@ FROM node:22-alpine
  
 # Install curl for healthchecks
 RUN apk upgrade --no-cache && apk add --no-cache curl
+# # ← patched npm bundles tar >= 7.5.19
+RUN npm install -g npm@latest
 
 # Set working directory
 WORKDIR /app
