@@ -52,16 +52,16 @@ resource "aws_eks_cluster" "main" {
   version  = var.cluster_version
   role_arn = aws_iam_role.eks_cluster.arn
   vpc_config {
-    subnet_ids = var.private_subnet_ids
+    subnet_ids              = var.private_subnet_ids
     endpoint_private_access = true
     endpoint_public_access  = true
   }
   access_config {
-  authentication_mode = "API_AND_CONFIG_MAP"
-}
+    authentication_mode = "API_AND_CONFIG_MAP"
+  }
   enabled_cluster_log_types = var.enable_control_plane_logging ? ["api", "audit", "auth", "controllerManager", "scheduler"] : []
-  depends_on = [aws_iam_role_policy_attachment.eks_cluster_policy]
-  tags = var.tags
+  depends_on                = [aws_iam_role_policy_attachment.eks_cluster_policy]
+  tags                      = var.tags
 }
 # 4. Launch Template for Node Group (IMDS hop limit for pods)
 resource "aws_launch_template" "node_group" {
@@ -83,7 +83,7 @@ resource "aws_eks_node_group" "main" {
   node_group_name = var.node_group_name
   node_role_arn   = aws_iam_role.eks_node_group.arn
   subnet_ids      = var.private_subnet_ids
-  instance_types = var.instance_types
+  instance_types  = var.instance_types
   scaling_config {
     desired_size = var.desired_size
     max_size     = var.max_size
@@ -112,7 +112,40 @@ resource "aws_iam_openid_connect_provider" "eks" {
   client_id_list  = ["sts.amazonaws.com"]
   thumbprint_list = [data.tls_certificate.eks.certificates[0].sha1_fingerprint]
   url             = aws_eks_cluster.main.identity[0].oidc[0].issuer
+  tags            = var.tags
+}
+
+# 6b. EBS CSI Driver (IRSA via OIDC)
+resource "aws_iam_role" "ebs_csi" {
+  name = "${var.cluster_name}-ebs-csi-driver"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Action = "sts:AssumeRoleWithWebIdentity"
+      Effect = "Allow"
+      Principal = {
+        Federated = aws_iam_openid_connect_provider.eks.arn
+      }
+      Condition = {
+        StringEquals = {
+          "${replace(aws_iam_openid_connect_provider.eks.url, "https://", "")}:sub" = "system:serviceaccount:kube-system:ebs-csi-controller-sa"
+        }
+      }
+    }]
+  })
   tags = var.tags
+}
+
+resource "aws_iam_role_policy_attachment" "ebs_csi" {
+  role       = aws_iam_role.ebs_csi.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
+}
+
+resource "aws_eks_addon" "ebs_csi" {
+  cluster_name             = aws_eks_cluster.main.name
+  addon_name               = "aws-ebs-csi-driver"
+  service_account_role_arn = aws_iam_role.ebs_csi.arn
+  depends_on               = [aws_iam_openid_connect_provider.eks]
 }
 
 # add policy allow creating ABL for services
