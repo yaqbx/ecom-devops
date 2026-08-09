@@ -25,15 +25,20 @@ spec:
       containers:
         - name: redis
           image: redis:7-alpine
+          args: ["--appendonly", "yes"]
           # REDIS IMAGE:
           # - redis:7 = Redis version 7
           # - -alpine = Lightweight Alpine base
-          # - Redis is in-memory cache (no persistence needed for testing)
+          # - --appendonly yes = persist data to PVC via AOF
           
           ports:
             - containerPort: 6379
               name: redis
               protocol: TCP
+          
+          volumeMounts:
+            - name: redis-data
+              mountPath: /data
           
           resources:
             requests:
@@ -62,3 +67,8 @@ spec:
             periodSeconds: 5
             timeoutSeconds: 3
             failureThreshold: 3
+      
+      volumes:
+        - name: redis-data
+          persistentVolumeClaim:
+            claimName: redis-pvc

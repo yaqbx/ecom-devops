@@ -47,7 +47,7 @@ variable "eks_instance_types" {
 variable "eks_desired_size" {
   description = "Desired number of nodes"
   type        = number
-  default     = 3
+  default     = 4
 }
 variable "eks_min_size" {
   description = "Minimum number of nodes"
@@ -57,7 +57,7 @@ variable "eks_min_size" {
 variable "eks_max_size" {
   description = "Maximum number of nodes"
   type        = number
-  default     = 3
+  default     = 5
 }
 variable "eks_enable_logging" {
   description = "Enable control plane logging (Costs extra)"

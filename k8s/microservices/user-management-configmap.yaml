@@ -10,7 +10,7 @@ metadata:
   labels:
     app: user-management
 data:
-  DATABASE_URL: "postgres://postgres:postgres@postgres.ecommerce.svc.cluster.local:5432/user_management"
+  DATABASE_URL: "postgres://postgres:postgres@postgres.dev.svc.cluster.local:5432/user_management"
   # DATABASE_URL EXPLAINED:
   # - PostgreSQL connection string
   # - Format: postgres://[user]:[pass]@[host]:[port]/[db]
@@ -19,7 +19,7 @@ data:
   # - Port: 5432 (PostgreSQL default)
   # - Database: user_management
   
-  REDIS_URL: "redis://redis.ecommerce.svc.cluster.local:6379/0"
+  REDIS_URL: "redis://redis.dev.svc.cluster.local:6379/0"
   # REDIS_URL EXPLAINED:
   # - Redis connection string
   # - Format: redis://[host]:[port]/[db]

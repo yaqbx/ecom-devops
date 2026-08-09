@@ -17,7 +17,7 @@ metadata:
   labels:
     app: product-catalog
 data:
-  MONGODB_URI: "mongodb://mongodb.ecommerce.svc.cluster.local:27017/equipment_catalog"
+  MONGODB_URI: "mongodb://mongodb.dev.svc.cluster.local:27017/equipment_catalog"
   # MONGODB_URI EXPLAINED:
   # - Connection string for MongoDB
   # - Format: mongodb://[host]:[port]/[database]
